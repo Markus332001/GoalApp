@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">GoalApp</string>
+    <string name="goal_overview">Zielübersicht</string>
+    <string name="calendar">Kalender</string>
+    <string name="chats">Chats</string>
 </resources>
