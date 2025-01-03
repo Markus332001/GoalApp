@@ -7,4 +7,12 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="primary">#383FC4</color>
+    <color name="negative">#AA2626</color>
+    <color name="positive">#328E18</color>
+    <color name="today">#184AAE</color>
+    <color name="day_in_future">#B3B3B3</color>
+    <color name="buttons">#F1ECF4</color>
+    <color name="button_font">#363438</color>
+    <color name="button_font_light">#FFFFFF</color>
 </resources>

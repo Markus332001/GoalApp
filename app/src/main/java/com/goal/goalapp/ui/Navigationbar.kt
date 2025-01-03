@@ -9,13 +9,9 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
@@ -24,8 +20,8 @@ import androidx.navigation.compose.rememberNavController
 import com.goal.goalapp.R
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import com.goal.goalapp.ui.login.StartScreen
+import com.goal.goalapp.ui.login.LoginScreen
 
 data class BottomNavigationItem(
     val title: String,
@@ -56,6 +52,8 @@ val items = listOf(
 )
 
 enum class NavigationScreens (@StringRes val title: Int){
+    StartScreen(title = R.string.startScreen),
+    LoginScreen(title = R.string.loginScreen),
     GoalsMain(title = R.string.goal_overview),
     CalenderMain(title = R.string.calendar),
     ChatsMain(title = R.string.chats)
@@ -105,27 +103,40 @@ fun Navigation(
     )
     NavHost(
         navController = navController,
-        startDestination = NavigationScreens.GoalsMain.name,
+        startDestination = NavigationScreens.StartScreen.name,
         modifier = Modifier
     ){
+        composable(route = NavigationScreens.StartScreen.name) {
+            StartScreen(
+                selectedScreen = NavigationScreens.StartScreen,
+                toLoginScreen = {navController.navigate(NavigationScreens.LoginScreen.name)},
+                toGoalOverview = {navController.navigate(NavigationScreens.GoalsMain.name)}
+            )
+        }
+        composable(route = NavigationScreens.LoginScreen.name) {
+            LoginScreen(
+                selectedScreen = NavigationScreens.LoginScreen
+            )
+        }
+
         composable(route = NavigationScreens.GoalsMain.name) {
             BottomNavigation(
                 selectedScreen = NavigationScreens.GoalsMain,
-                screen = {innerPadding ->  Text(text = "Goals")},
+                screen = { Text(text = "Goals")},
                 navController = navController
             )
         }
         composable(route = NavigationScreens.CalenderMain.name) {
             BottomNavigation(
                 selectedScreen = NavigationScreens.CalenderMain,
-                screen = {innerPadding ->  Text(text = "Calendar")},
+                screen = { Text(text = "Calendar")},
                 navController = navController
             )
         }
         composable(route = NavigationScreens.ChatsMain.name) {
             BottomNavigation(
                 selectedScreen = NavigationScreens.ChatsMain,
-                screen = {innerPadding ->  Text(text = "Chats")},
+                screen = { Text(text = "Chats")},
                 navController = navController
 
             )

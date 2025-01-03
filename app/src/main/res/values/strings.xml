@@ -3,4 +3,11 @@
     <string name="goal_overview">Zielübersicht</string>
     <string name="calendar">Kalender</string>
     <string name="chats">Chats</string>
+    <string name="login">Login</string>
+    <string name="login_text">Willkommen zurück. Bitte logge dich ein</string>
+    <string name="password">Passwort</string>
+    <string name="email">E-Mail</string>
+    <string name="enter_valid_email">Bitte gib eine gültige E-Mail-Adresse ein.</string>
+    <string name="startScreen">Startbildschirm</string>
+    <string name="loginScreen">Login Bildschirm\t</string>"
 </resources>

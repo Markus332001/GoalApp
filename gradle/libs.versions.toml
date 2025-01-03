@@ -1,6 +1,9 @@
 [versions]
 agp = "8.7.3"
+bcrypt = "0.9.0"
 constraintlayout = "2.2.0"
+datastorePreferences = "1.1.1"
+datastorePreferencesVersion = "1.0.0"
 kotlin = "2.1.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -9,6 +12,7 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.9.3"
 composeBom = "2024.12.01"
+materialIconsExtended = "1.7.6"
 roomCommon = "2.6.1"
 navigationRuntimeKtx = "2.8.5"
 navigationCompose = "2.8.5"
@@ -16,9 +20,13 @@ navigationCompose = "2.8.5"
 [libraries]
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
+androidx-datastore-preferences-v100 = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferencesVersion" }
+androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-room-common = { module = "androidx.room:room-common", version.ref = "roomCommon" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomCommon" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomCommon" }
+bcrypt = { module = "at.favre.lib:bcrypt", version.ref = "bcrypt" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
