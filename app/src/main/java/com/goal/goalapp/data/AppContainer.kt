@@ -1,9 +1,12 @@
 package com.goal.goalapp.data
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStoreFile
 import com.goal.goalapp.data.comment.CommentRepository
 import com.goal.goalapp.data.comment.OfflineCommentRepository
-import com.goal.goalapp.data.goal.GoalDatabase
 import com.goal.goalapp.data.goal.GoalRepository
 import com.goal.goalapp.data.goal.OfflineGoalRepository
 import com.goal.goalapp.data.group.GroupRepository
@@ -25,6 +28,7 @@ interface AppContainer{
     val postRepository: PostRepository
     val userRepository: UserRepository
     val userSessionRepository: UserSessionRepository
+    val userSessionStorage: UserSessionStorage
 }
 
 /**
@@ -72,5 +76,15 @@ class AppDataContainer(private val context: Context) : AppContainer{
      */
     override val userSessionRepository: UserSessionRepository by lazy {
         OfflineUserSessionRepository(GoalDatabase.getDatabase(context).userSessionDao())
+    }
+
+    /**
+     * Implementation for [UserSessionStorage]
+     */
+    override val userSessionStorage: UserSessionStorage by lazy {
+        val dataStore: DataStore<Preferences> = PreferenceDataStoreFactory.create {
+            context.preferencesDataStoreFile("user_prefs")
+        }
+        UserSessionStorage(dataStore)
     }
 }

@@ -57,6 +57,7 @@ dependencies {
 
     //For Password Hashing
     implementation (libs.bcrypt)
+    implementation(libs.androidx.runtime.livedata)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

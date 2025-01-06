@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -28,14 +30,18 @@ fun StartScreen(
         loginViewModel.loadLoginStatus()
     }
 
-    LaunchedEffect(loginViewModel) {
-        loginViewModel.navigationEvent.collect{ isLoggedOut ->
-            if(isLoggedOut){
+    val isLoggedIn by loginViewModel.isLoggedIn.observeAsState()
+    val sessionExpiry by loginViewModel.sessionExpiry.observeAsState()
+
+    LaunchedEffect(isLoggedIn, sessionExpiry) {
+        if(isLoggedIn != null && sessionExpiry != null){
+            if(isLoggedIn == true && (sessionExpiry ?: 0L) >= System.currentTimeMillis()){
                 toGoalOverview()
             }else{
                 toLoginScreen()
             }
         }
+
     }
 
     Box(

@@ -3,6 +3,7 @@ package com.goal.goalapp.ui
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -14,14 +15,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.goal.goalapp.R
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.goal.goalapp.ui.goal.CreateGoalScreen
+import com.goal.goalapp.ui.goal.GoalOverviewScreen
 import com.goal.goalapp.ui.login.StartScreen
 import com.goal.goalapp.ui.login.LoginScreen
+import com.goal.goalapp.ui.login.RegisterScreen
 
 data class BottomNavigationItem(
     val title: String,
@@ -52,11 +57,13 @@ val items = listOf(
 )
 
 enum class NavigationScreens (@StringRes val title: Int){
+    RegisterScreen(title = R.string.registerScreen),
     StartScreen(title = R.string.startScreen),
     LoginScreen(title = R.string.loginScreen),
     GoalsMain(title = R.string.goal_overview),
     CalenderMain(title = R.string.calendar),
-    ChatsMain(title = R.string.chats)
+    ChatsMain(title = R.string.chats),
+    CreateGoalScreen(title = R.string.create_goal),
 }
 
 /**
@@ -104,7 +111,7 @@ fun Navigation(
     NavHost(
         navController = navController,
         startDestination = NavigationScreens.StartScreen.name,
-        modifier = Modifier
+        modifier = modifier
     ){
         composable(route = NavigationScreens.StartScreen.name) {
             StartScreen(
@@ -115,28 +122,46 @@ fun Navigation(
         }
         composable(route = NavigationScreens.LoginScreen.name) {
             LoginScreen(
-                selectedScreen = NavigationScreens.LoginScreen
+                toRegisterScreen = {navController.navigate(NavigationScreens.RegisterScreen.name)},
+                toHomeScreen = {navController.navigate(NavigationScreens.GoalsMain.name)}
+            )
+        }
+        composable(route = NavigationScreens.RegisterScreen.name) {
+            RegisterScreen(
+                toLoginScreen = {navController.navigate(NavigationScreens.LoginScreen.name)}
             )
         }
 
         composable(route = NavigationScreens.GoalsMain.name) {
             BottomNavigation(
                 selectedScreen = NavigationScreens.GoalsMain,
-                screen = { Text(text = "Goals")},
+                screen = { innerPadding ->
+                    GoalOverviewScreen(
+                        toGoalDetailsScreen = {goalId -> navController.navigate(NavigationScreens.GoalsMain.name + "/$goalId") },
+                        toCreateGoalScreen = { navController.navigate(NavigationScreens.CreateGoalScreen.name) },
+                        modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
+                    )
+                         },
                 navController = navController
+            )
+        }
+        composable(route = NavigationScreens.CreateGoalScreen.name) {
+            CreateGoalScreen(
+                navigateBack = { navController.navigateUp() },
+                toCreateRoutineScreen = { /*TODO*/ }
             )
         }
         composable(route = NavigationScreens.CalenderMain.name) {
             BottomNavigation(
                 selectedScreen = NavigationScreens.CalenderMain,
-                screen = { Text(text = "Calendar")},
+                screen = { /*TODO*/},
                 navController = navController
             )
         }
         composable(route = NavigationScreens.ChatsMain.name) {
             BottomNavigation(
                 selectedScreen = NavigationScreens.ChatsMain,
-                screen = { Text(text = "Chats")},
+                screen = { /*TODO*/},
                 navController = navController
 
             )

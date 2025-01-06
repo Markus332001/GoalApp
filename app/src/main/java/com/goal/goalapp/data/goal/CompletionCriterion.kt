@@ -18,7 +18,7 @@ import com.goal.goalapp.data.CompletionType
 data class CompletionCriterion(
     val goalId: Int,
     val completionType: CompletionType,
-    val completionRate: Int,
     val targetValue: Int?,
-    val currentValue: Int?
+    val currentValue: Int?,
+    val unit: String?
 ): BaseEntity()

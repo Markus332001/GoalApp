@@ -13,40 +13,15 @@ import at.favre.lib.crypto.bcrypt.BCrypt
 import com.goal.goalapp.data.user_session.UserSessionRepository
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.LiveData
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.longPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.launch
-import androidx.lifecycle.viewModelScope
-import com.goal.goalapp.dataStore
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
+import com.goal.goalapp.data.UserSessionStorage
 
 
 class LoginViewModel(
     private val userRepository: UserRepository,
     private val sessionRepository: UserSessionRepository,
-    application: Application
-) : AndroidViewModel(application) {
-
-
-    private val dataStore = application.applicationContext.dataStore
-
-    //SharedFlow for navigation events in the Ui. Checks if the user is logged in
-    private val _navigationEvent = MutableSharedFlow<Boolean>()
-    val navigationEvent: SharedFlow<Boolean> get() = _navigationEvent
-
-    // keys for saving
-    private val IS_USER_LOGGED_IN = booleanPreferencesKey("IS_USER_LOGGED_IN")
-    private val SESSION_EXPIRY = longPreferencesKey("SESSION_EXPIRY")
-    private val ACTIVE_USER_ID = intPreferencesKey("ACTIVE_USER_ID")
+    private val userSessionStorage: UserSessionStorage
+) : ViewModel(){
 
 
     // LiveData for the login state, session expiry, and user ID
@@ -78,7 +53,7 @@ class LoginViewModel(
             if (user != null && verifyPassword(password, user.passwordHash)) {
                 val session = sessionRepository.createSession(user.id)
                 _loginState.value = LoginState.Success(session)
-                //saveLoginStatus(true, session.expiresAt, user.id)
+                userSessionStorage.saveLoginStatus(true, session.expiresAt, user.id)
             } else {
                 _loginState.value = LoginState.Error("Ungültige Anmeldedaten")
             }
@@ -90,34 +65,15 @@ class LoginViewModel(
      */
     fun  loadLoginStatus() {
         viewModelScope.launch {
-            val preferences = dataStore.data.first()
-            val isLoggedIn = preferences[IS_USER_LOGGED_IN] ?: false
-            val sessionExpiry = preferences[SESSION_EXPIRY] ?: 0L
-            val userId = preferences[ACTIVE_USER_ID]
+            val userSession = userSessionStorage.loadLoginStatus()
 
-            _isLoggedIn.postValue(isLoggedIn)
-            _sessionExpiry.postValue(sessionExpiry)
-            _userId.postValue(userId)
-
-            //so something can be done after all the previous things are done
-
-            _navigationEvent.emit(_isLoggedIn.value == true && _sessionExpiry.value!! > System.currentTimeMillis())
-
+            _isLoggedIn.postValue(userSession.isLoggedIn)
+            _sessionExpiry.postValue(userSession.expiresAt)
+            _userId.postValue(userSession.userId)
         }
     }
 
-    /**
-     * Saves the login status to the DataStore
-     */
-    private fun saveLoginStatus(isLoggedIn: Boolean, sessionExpiry: Long, userId: Int) {
-        viewModelScope.launch {
-            dataStore.edit { preferences ->
-                preferences[IS_USER_LOGGED_IN] = isLoggedIn
-                preferences[SESSION_EXPIRY] = sessionExpiry
-                preferences[ACTIVE_USER_ID] = userId
-            }
-        }
-    }
+
 }
 
 sealed class LoginState {
@@ -125,11 +81,6 @@ sealed class LoginState {
     data object Loading : LoginState() // when the login process is loading
     data class Success(val session: UserSession) : LoginState()
     data class Error(val message: String) : LoginState()
-}
-
-// Hashing des Passworts
-fun hashPassword(password: String): String {
-    return BCrypt.withDefaults().hashToString(12, password.toCharArray())
 }
 
 fun verifyPassword(password: String, hashedPassword: String): Boolean {

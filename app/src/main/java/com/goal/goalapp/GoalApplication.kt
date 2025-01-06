@@ -1,15 +1,10 @@
 package com.goal.goalapp
 
 import android.app.Application
-import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
 import com.goal.goalapp.data.AppContainer
 import com.goal.goalapp.data.AppDataContainer
 
-
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
+const val TIMEOUT_MILLIS = 5_000L
 
 class GoalApplication: Application() {
 
@@ -23,4 +18,6 @@ class GoalApplication: Application() {
         super.onCreate()
         container = AppDataContainer(this)
     }
+
+
 }

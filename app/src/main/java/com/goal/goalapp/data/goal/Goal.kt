@@ -18,6 +18,7 @@ import java.util.Date
 )
 data class Goal(
     val title: String,
+    val progress: Float,
     val deadline: Date,
     val notes: String,
     val userId: Int

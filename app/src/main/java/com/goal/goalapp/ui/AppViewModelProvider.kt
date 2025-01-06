@@ -8,22 +8,47 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.goal.goalapp.GoalApplication
+import com.goal.goalapp.ui.goal.CreateGoalViewModel
+import com.goal.goalapp.ui.goal.GoalOverviewViewModel
 import com.goal.goalapp.ui.login.LoginViewModel
+import com.goal.goalapp.ui.login.RegisterViewModel
 
 /**
  * Provides Factory to create instance of ViewModel for the entire goal app
  */
 object AppViewModelProvider{
     val Factory = viewModelFactory {
+
         // Initializer for LoginViewModel
         initializer {
-            val application = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]
-                    as? Application ?: throw IllegalStateException("Application context required")
-
             LoginViewModel(
                 goalApplication().container.userRepository,
                 goalApplication().container.userSessionRepository,
-                application
+                goalApplication().container.userSessionStorage
+            )
+        }
+
+        // Initializer for RegisterViewModel
+        initializer {
+            RegisterViewModel(
+                goalApplication().container.userRepository
+            )
+        }
+
+        // Initializer for GoalOverviewViewModel
+        initializer {
+            GoalOverviewViewModel(
+                goalApplication().container.goalRepository,
+                goalApplication().container.userRepository,
+                goalApplication().container.userSessionStorage
+            )
+        }
+
+        // Initializer for CreateGoalViewModel
+        initializer {
+            CreateGoalViewModel(
+                goalApplication().container.goalRepository,
+                goalApplication().container.userSessionStorage
             )
         }
 

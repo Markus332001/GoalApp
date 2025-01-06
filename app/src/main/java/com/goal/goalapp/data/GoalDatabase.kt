@@ -1,13 +1,17 @@
-package com.goal.goalapp.data.goal
+package com.goal.goalapp.data
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.goal.goalapp.data.Converters
 import com.goal.goalapp.data.comment.Comment
 import com.goal.goalapp.data.comment.CommentDao
+import com.goal.goalapp.data.goal.CompletionCriterion
+import com.goal.goalapp.data.goal.Goal
+import com.goal.goalapp.data.goal.GoalDao
+import com.goal.goalapp.data.goal.Routine
+import com.goal.goalapp.data.goal.RoutineSummary
 import com.goal.goalapp.data.group.Group
 import com.goal.goalapp.data.group.GroupCategory
 import com.goal.goalapp.data.group.GroupDao
@@ -34,7 +38,7 @@ import com.goal.goalapp.data.user_session.UserSessionDao
     Comment::class,
     UserGroupCrossRef::class,
     GroupGroupCategoryCrossRef::class
-                     ], version = 1, exportSchema = false)
+                     ], version = 4, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class GoalDatabase : RoomDatabase(){
 
