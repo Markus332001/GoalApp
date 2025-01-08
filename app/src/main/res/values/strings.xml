@@ -38,4 +38,22 @@
     <string name="notes">Notizen</string>
     <string name="routine">Routine</string>
     <string name="add_routine">Routine erstellen</string>
+    <string name="create_routine">Erstelle Routine</string>
+    <string name="weekly">Wöchentlich</string>
+    <string name="frequency">Häufigkeit</string>
+    <string name="daily">Täglich</string>
+    <string name="every">Jeden</string>
+    <string name="day">Tag</string>
+    <string name="start">Start</string>
+    <string name="date">Datum</string>
+    <string name="end">Ende</string>
+    <string name="after">nach</string>
+    <string name="time">mal</string>
+    <string name="progress_connected">Fortschritt verbunden</string>
+    <string name="start_screen">Start Bildschirm</string>
+    <string name="goal_details">Zieldetails</string>
+    <string name="share">Teilen</string>
+    <string name="settings">Einstellungen</string>
+    <string name="until">Bis</string>
+    <string name="click_to_complete_goal">Klicke hier um das Ziel abzuschließen</string>
 </resources>

@@ -21,6 +21,7 @@ import java.util.Date
 data class Routine(
     val title: String,
     val goalId: Int, // Goal ID
+    val progress: Float,
     val frequency: Frequency,
     val daysOfWeek: List<DaysOfWeek>?,
     val intervalDays: Int?,

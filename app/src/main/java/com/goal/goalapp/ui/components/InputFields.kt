@@ -22,13 +22,18 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerColors
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
@@ -53,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.Popup
 import com.goal.goalapp.R
+import com.goal.goalapp.ui.helper.convertDateToStringFormat
 import java.util.Date
 
 val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
@@ -124,9 +131,11 @@ fun EmailInput(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateInput(
-    date: Date,
+    date: Date?,
     onDateChange: (Date) -> Unit,
     label: String,
+    color: TextFieldColors = OutlinedTextFieldDefaults.colors(),
+    iconColor: Color =  LocalContentColor.current,
     modifier: Modifier = Modifier
 ){
     var showDatePicker by remember { mutableStateOf(false) }
@@ -144,16 +153,18 @@ fun DateInput(
             .fillMaxWidth()
     ) {
         OutlinedTextField(
-            value = convertDateToStringFormat(date),
+            value = if(date != null) convertDateToStringFormat(date) else "",
             onValueChange = { },
             label = { Text(text = label) },
             readOnly = true,
+            colors = color,
             trailingIcon = {
 
                 IconButton(onClick = { showDatePicker = !showDatePicker }) {
                     Icon(
                         imageVector = Icons.Default.DateRange,
-                        contentDescription = "Select date"
+                        contentDescription = "Select date",
+                        tint = iconColor
                     )
                 }
 
@@ -217,12 +228,9 @@ fun NotesInput(
 
 
 
-@SuppressLint("SimpleDateFormat")
-fun convertDateToStringFormat(date: Date): String {
-    val formatter = SimpleDateFormat("dd/MM/yyyy")
-    return formatter.format(date)
-}
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 fun DateInputPreview() {

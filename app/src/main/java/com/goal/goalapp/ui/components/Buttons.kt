@@ -2,6 +2,7 @@ package com.goal.goalapp.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
@@ -25,6 +26,7 @@ fun SelectButton(
     title: String,
     onClick: () -> Unit,
     selected: Boolean,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier
 ){
     Button(
@@ -32,9 +34,11 @@ fun SelectButton(
         colors = ButtonColors(
             containerColor = if (selected) colorResource(R.color.primary) else colorResource(R.color.cardsBackground),
             contentColor = if (selected) colorResource(R.color.button_font_light) else Color.Black,
-            disabledContainerColor = Color.Gray,
+            disabledContainerColor = Color.LightGray,
             disabledContentColor = Color.Black
         ),
+        shape = RoundedCornerShape(16.dp),
+        enabled = enabled,
         modifier = modifier.fillMaxWidth()
     ){
         Text(text = title, style = MaterialTheme.typography.bodyLarge)
@@ -55,6 +59,7 @@ fun AddComponentButton(
             disabledContainerColor = Color.Gray,
             disabledContentColor = Color.Black
         ),
+        shape = RoundedCornerShape(16.dp),
         modifier = modifier.fillMaxWidth()
     ) {
         Icon(

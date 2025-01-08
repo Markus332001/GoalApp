@@ -21,5 +21,5 @@ data class Goal(
     val progress: Float,
     val deadline: Date,
     val notes: String,
-    val userId: Int
+    var userId: Int
 ) : BaseEntity()

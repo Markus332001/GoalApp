@@ -16,13 +16,20 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.goal.goalapp.R
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.goal.goalapp.ui.goal.CreateGoalScreen
+import com.goal.goalapp.ui.goal.CreateGoalViewModel
+import com.goal.goalapp.ui.goal.CreateRoutine
+import com.goal.goalapp.ui.goal.CreateRoutineScreen
+import com.goal.goalapp.ui.goal.GoalDetailsScreen
 import com.goal.goalapp.ui.goal.GoalOverviewScreen
 import com.goal.goalapp.ui.login.StartScreen
 import com.goal.goalapp.ui.login.LoginScreen
@@ -64,6 +71,13 @@ enum class NavigationScreens (@StringRes val title: Int){
     CalenderMain(title = R.string.calendar),
     ChatsMain(title = R.string.chats),
     CreateGoalScreen(title = R.string.create_goal),
+    CreateRoutineScreen(title = R.string.create_routine),
+    GoalDetailsScreen(title = R.string.goal_details);
+
+    // function for dynamic routes
+    fun withArgs(vararg args: String): String {
+        return this.name + args.joinToString("/", prefix = "/")
+    }
 }
 
 /**
@@ -102,12 +116,9 @@ fun BottomNavigation(
 @Composable
 fun Navigation(
     navController: NavHostController = rememberNavController(),
+    createGoalViewModel: CreateGoalViewModel = viewModel(factory = AppViewModelProvider.Factory),
     modifier: Modifier = Modifier
 ){
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = NavigationScreens.valueOf(
-        backStackEntry?.destination?.route ?: NavigationScreens.GoalsMain.name
-    )
     NavHost(
         navController = navController,
         startDestination = NavigationScreens.StartScreen.name,
@@ -137,7 +148,8 @@ fun Navigation(
                 selectedScreen = NavigationScreens.GoalsMain,
                 screen = { innerPadding ->
                     GoalOverviewScreen(
-                        toGoalDetailsScreen = {goalId -> navController.navigate(NavigationScreens.GoalsMain.name + "/$goalId") },
+                        toGoalDetailsScreen = {goalId ->
+                            navController.navigate(NavigationScreens.GoalDetailsScreen.withArgs(goalId.toString()) ) },
                         toCreateGoalScreen = { navController.navigate(NavigationScreens.CreateGoalScreen.name) },
                         modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
                     )
@@ -148,9 +160,32 @@ fun Navigation(
         composable(route = NavigationScreens.CreateGoalScreen.name) {
             CreateGoalScreen(
                 navigateBack = { navController.navigateUp() },
-                toCreateRoutineScreen = { /*TODO*/ }
+                toCreateRoutineScreen = { navController.navigate(NavigationScreens.CreateRoutineScreen.name) },
+                createGoalViewModel = createGoalViewModel
             )
         }
+        composable(route = NavigationScreens.CreateRoutineScreen.name) {
+
+            CreateRoutineScreen(
+                navigateBack = { navController.navigateUp() },
+                toCreateGoalScreen = { navController.navigate(NavigationScreens.CreateGoalScreen.name) },
+                createGoalViewModel = createGoalViewModel
+            )
+        }
+        composable(
+            route ="${NavigationScreens.GoalDetailsScreen.name}/{goalId}",
+            arguments = listOf(navArgument("goalId") {
+                type = NavType.IntType
+            })
+        ) {backStackEntry ->
+            val goalId = backStackEntry.arguments?.getInt("goalId")
+            GoalDetailsScreen(
+                goalId = goalId,
+                navigateBack = { navController.navigateUp() }
+            )
+
+        }
+
         composable(route = NavigationScreens.CalenderMain.name) {
             BottomNavigation(
                 selectedScreen = NavigationScreens.CalenderMain,

@@ -61,7 +61,8 @@ fun GoalOverviewScreen(
                     GoalCard(
                         onClick = { toGoalDetailsScreen(item.id) },
                         goalName = item.title,
-                        goalProgress = item.progress
+                        goalProgress = item.progress,
+                        modifier = Modifier.padding(top = PADDING_BETWEEN_ELEMENTS.dp)
                     )
                 }
             }

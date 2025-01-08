@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import androidx.lifecycle.LiveData
 import com.goal.goalapp.data.UserSessionStorage
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 
 
 class LoginViewModel(
@@ -73,6 +75,15 @@ class LoginViewModel(
         }
     }
 
+    suspend fun isLoggedIn(): Boolean{
+        if(isLoggedIn.value == true && (sessionExpiry.value?: 0) > System.currentTimeMillis() && userId.value != null){
+            val userInDb = userRepository.getUserByIdStream(userId.value!!)
+            if(userInDb.firstOrNull() != null){
+                return true
+            }
+        }
+        return false;
+    }
 
 }
 

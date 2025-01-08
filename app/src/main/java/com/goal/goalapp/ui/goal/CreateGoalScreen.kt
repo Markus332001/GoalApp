@@ -54,11 +54,15 @@ import com.goal.goalapp.ui.components.DateInput
 import com.goal.goalapp.ui.components.NotesInput
 import com.goal.goalapp.ui.components.SelectButton
 import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.State
+import com.goal.goalapp.data.Frequency
 import com.goal.goalapp.ui.components.AddComponentButton
+import com.goal.goalapp.ui.components.RoutineCard
+import java.util.Date
 
-const val PADDING_PREVIOUS_SECTION = 30
+const val PADDING_PREVIOUS_SECTION = 40
 const val PADDING_AFTER_HEADLINE = 10
-const val PADDING_BETWEEN_ELEMENTS = 5
+const val PADDING_BETWEEN_ELEMENTS = 10
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,6 +74,7 @@ fun CreateGoalScreen(
 ){
     val createGoal by createGoalViewModel.createGoal.collectAsState()
     var showReachTargetValuePopup by remember { mutableStateOf(false) }
+    val createGoalState = createGoalViewModel.createGoalState.collectAsState()
 
     /**
      * Completion Criteria Reach Target Value Popup
@@ -77,11 +82,46 @@ fun CreateGoalScreen(
     if(showReachTargetValuePopup){
         CompletionCriteriaReachTargetValuePopUp(
             setShowPopup = { showReachTargetValuePopup = it },
+            oldUnit = createGoal.completionCriteria?.unit ?: "",
+            oldTargetValue = createGoal.completionCriteria?.targetValue?.toString() ?: "",
             setCompletionCriteria = { targetValue, unit ->
                 createGoalViewModel.updateGoalCompletionCriteriaReachTargetValue(targetValue, unit)
             }
         )
     }
+
+    CreateGoalScreenBody(
+        createGoal = createGoal,
+        createGoalViewModel = createGoalViewModel,
+        navigateBack = navigateBack,
+        setShowPopup = { showReachTargetValuePopup = it },
+        toCreateRoutineScreen = toCreateRoutineScreen,
+        createGoalState = createGoalState,
+        modifier = modifier
+    )
+
+    /**
+     * If the goal was successfully created, navigate back to the goal overview screen
+     */
+    if(createGoalState.value is CreateGoalState.Success){
+        createGoalViewModel.resetCreateGoal()
+        navigateBack()
+    }
+
+}
+
+@Composable
+fun CreateGoalScreenBody(
+    createGoal: CreateGoal,
+    createGoalViewModel: CreateGoalViewModel,
+    navigateBack: () -> Unit,
+    setShowPopup: (Boolean) -> Unit,
+    toCreateRoutineScreen: () -> Unit,
+    createGoalState: State<CreateGoalState>,
+    modifier: Modifier = Modifier,
+){
+    var isValid by remember { mutableStateOf(false) }
+    isValid = checkCreateGoalValidity(createGoal)
 
     LazyColumn(modifier = modifier
         .fillMaxSize()
@@ -89,22 +129,25 @@ fun CreateGoalScreen(
         /**
          * Back arrow
          */
-        item{
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.back_arrow),
-                    modifier = Modifier
-                        .padding(bottom = 20.dp)
-                        .clickable{ navigateBack() }
-                        .size(30.dp)
-                )
+        item {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.back_arrow),
+                modifier = Modifier
+                    .padding(bottom = 20.dp)
+                    .clickable {
+                        createGoalViewModel.resetCreateGoal()
+                        navigateBack()
+                    }
+                    .size(30.dp)
+            )
 
         }
 
         /**
          * Headline
          */
-        item{
+        item {
             Text(
                 text = stringResource(R.string.new_goal),
                 style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
@@ -115,13 +158,17 @@ fun CreateGoalScreen(
         /**
          * Title
          */
-        item{
-            Text(text = stringResource(R.string.title),
+        item {
+            Text(
+                text = stringResource(R.string.title),
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(top = PADDING_PREVIOUS_SECTION.dp, bottom = PADDING_AFTER_HEADLINE.dp)
+                modifier = Modifier.padding(
+                    top = PADDING_PREVIOUS_SECTION.dp,
+                    bottom = PADDING_AFTER_HEADLINE.dp
+                )
             )
         }
-        item{
+        item {
             OutlinedTextField(
                 value = createGoal.title,
                 onValueChange = { createGoalViewModel.updateGoalTitle(it) },
@@ -133,14 +180,17 @@ fun CreateGoalScreen(
         /**
          * Deadline
          */
-        item{
+        item {
             Text(
                 text = stringResource(R.string.deadline),
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(top = PADDING_PREVIOUS_SECTION.dp, bottom = PADDING_AFTER_HEADLINE.dp)
+                modifier = Modifier.padding(
+                    top = PADDING_PREVIOUS_SECTION.dp,
+                    bottom = PADDING_AFTER_HEADLINE.dp
+                )
             )
         }
-        item{
+        item {
             DateInput(
                 date = createGoal.deadline,
                 onDateChange = { createGoalViewModel.updateGoalDeadline(it) },
@@ -151,26 +201,32 @@ fun CreateGoalScreen(
         /**
          * Completion Criterion
          */
-        item{
+        item {
             Text(
                 text = stringResource(R.string.completion_criteria),
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(top = PADDING_PREVIOUS_SECTION.dp, bottom = PADDING_AFTER_HEADLINE.dp)
+                modifier = Modifier.padding(
+                    top = PADDING_PREVIOUS_SECTION.dp,
+                    bottom = PADDING_AFTER_HEADLINE.dp
+                )
             )
         }
-        item{
+        item {
             Text(
                 text = stringResource(R.string.completion_criteria_description),
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
             )
         }
-        item{
+        item {
             SelectButton(
                 title = stringResource(R.string.reach_goal),
                 onClick = { createGoalViewModel.updateGoalCompletionCriteriaReachGoal() },
                 selected = createGoal.completionCriteria?.completionType == CompletionType.ReachGoal,
-                modifier = Modifier.padding(top = PADDING_BETWEEN_ELEMENTS.dp).height(50.dp)
+                modifier = Modifier
+                    .padding(top = PADDING_BETWEEN_ELEMENTS.dp)
+                    .height(50.dp)
+                    .shadow(8.dp)
             )
         }
         item {
@@ -178,31 +234,41 @@ fun CreateGoalScreen(
                 title = stringResource(R.string.connect_routine),
                 onClick = { createGoalViewModel.updateGoalCompletionCriteriaConnectRoutine() },
                 selected = createGoal.completionCriteria?.completionType == CompletionType.ConnectRoutine,
-                modifier = Modifier.padding(top = PADDING_BETWEEN_ELEMENTS.dp).height(50.dp)
+                enabled = createGoal.routines.isNotEmpty(),
+                modifier = Modifier
+                    .padding(top = PADDING_BETWEEN_ELEMENTS.dp)
+                    .height(50.dp)
+                    .shadow(8.dp)
             )
         }
         item {
             SelectButton(
                 title = stringResource(R.string.reach_target_value),
                 onClick = {
-                    showReachTargetValuePopup = true
+                    setShowPopup(true)
                 },
                 selected = createGoal.completionCriteria?.completionType == CompletionType.ReachTargetValue,
-                modifier = Modifier.padding(top = PADDING_BETWEEN_ELEMENTS.dp).height(50.dp)
+                modifier = Modifier
+                    .padding(top = PADDING_BETWEEN_ELEMENTS.dp)
+                    .height(50.dp)
+                    .shadow(8.dp)
             )
         }
 
         /**
          * Notes
          */
-        item{
+        item {
             Text(
                 text = stringResource(R.string.notes),
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(top = PADDING_PREVIOUS_SECTION.dp, bottom = PADDING_AFTER_HEADLINE.dp)
+                modifier = Modifier.padding(
+                    top = PADDING_PREVIOUS_SECTION.dp,
+                    bottom = PADDING_AFTER_HEADLINE.dp
+                )
             )
         }
-        item{
+        item {
             NotesInput(
                 noteText = createGoal.notes,
                 onNoteChange = { createGoalViewModel.updateGoalNotes(it) },
@@ -213,30 +279,80 @@ fun CreateGoalScreen(
         /**
          * Routine
          */
-        item{
+        item {
             Text(
                 text = stringResource(R.string.routine),
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(top = PADDING_PREVIOUS_SECTION.dp, bottom = PADDING_AFTER_HEADLINE.dp)
+                modifier = Modifier.padding(
+                    top = PADDING_PREVIOUS_SECTION.dp,
+                    bottom = PADDING_AFTER_HEADLINE.dp
+                )
             )
         }
-        item{
+        item {
             AddComponentButton(
                 title = stringResource(R.string.add_routine),
-                onClick = { /*TODO*/ },
-                modifier = Modifier.padding(top = PADDING_BETWEEN_ELEMENTS.dp).height(50.dp)
+                onClick = { toCreateRoutineScreen() },
+                modifier = Modifier
+                    .padding(top = PADDING_BETWEEN_ELEMENTS.dp)
+                    .height(50.dp)
+                    .shadow(8.dp)
             )
         }
         items(items = createGoal.routines) { item ->
-            /*TODO*/
+            RoutineCard(
+                title = item.title,
+                frequency = item.frequency,
+                progressConnected = false,
+                startDate = item.startDate,
+                daysOfWeek = item.daysOfWeek,
+                intervalDays = item.intervalDays,
+                endDate = item.endDate,
+                endFrequency = item.endFrequency,
+                withProgressBar = false,
+                modifier = Modifier.padding(top = PADDING_BETWEEN_ELEMENTS.dp)
+            )
+        }
+        /**
+         * Save Button
+         */
+        item{
+            Button(
+                onClick = {
+                    createGoalViewModel.saveCreateGoal()
+
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorResource(R.color.primary),
+                    contentColor = colorResource(R.color.button_font_light)
+                ),
+                enabled = isValid,
+                modifier = Modifier
+                    .padding(top = 50.dp, bottom = 20.dp)
+                    .fillMaxWidth()
+                    .height(60.dp)
+            ) {
+                Text(text = stringResource(R.string.confirm))
+            }
+        }
+        /**
+         * Error by Saving Goal
+         */
+        item{
+            if(createGoalState.value is CreateGoalState.Error){
+                Text(
+                    text = (createGoalState.value as CreateGoalState.Error).message,
+                    color = Color.Red
+                )
+            }
         }
     }
-
 }
 
-@Composable
-fun CompletionCriteria(){
-
+fun checkCreateGoalValidity(createGoal: CreateGoal): Boolean {
+    return createGoal.title != "" &&
+            createGoal.deadline != Date(0) &&
+            (createGoal.completionCriteria?.completionType != null)
 
 }
 
@@ -244,10 +360,12 @@ fun CompletionCriteria(){
 fun CompletionCriteriaReachTargetValuePopUp(
     setShowPopup: (Boolean) -> Unit,
     setCompletionCriteria: (Int, String) -> Unit,
+    oldUnit: String,
+    oldTargetValue: String,
     modifier: Modifier = Modifier
 ){
-    var targetValue by remember { mutableStateOf("") }
-    var unit by remember { mutableStateOf("") }
+    var targetValue by remember { mutableStateOf(oldTargetValue) }
+    var unit by remember { mutableStateOf(oldUnit) }
     var isValid by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = { setShowPopup(false) }) {
@@ -351,6 +469,8 @@ fun CompletionCriteriaReachTargetValuePopUpPreview(){
     var showPopup by remember { mutableStateOf(true) }
     CompletionCriteriaReachTargetValuePopUp(
         setShowPopup = { showPopup = it },
+        oldUnit = "",
+        oldTargetValue = "",
         setCompletionCriteria = { _, _ -> }
     )
 }

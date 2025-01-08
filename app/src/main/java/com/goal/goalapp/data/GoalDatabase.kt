@@ -11,6 +11,7 @@ import com.goal.goalapp.data.goal.CompletionCriterion
 import com.goal.goalapp.data.goal.Goal
 import com.goal.goalapp.data.goal.GoalDao
 import com.goal.goalapp.data.goal.Routine
+import com.goal.goalapp.data.goal.RoutineCalendarDays
 import com.goal.goalapp.data.goal.RoutineSummary
 import com.goal.goalapp.data.group.Group
 import com.goal.goalapp.data.group.GroupCategory
@@ -31,6 +32,7 @@ import com.goal.goalapp.data.user_session.UserSessionDao
     Goal::class,
     CompletionCriterion::class,
     Routine::class,
+    RoutineCalendarDays::class,
     Group::class,
     GroupCategory::class,
     Post::class,
@@ -38,7 +40,7 @@ import com.goal.goalapp.data.user_session.UserSessionDao
     Comment::class,
     UserGroupCrossRef::class,
     GroupGroupCategoryCrossRef::class
-                     ], version = 4, exportSchema = false)
+                     ], version = 5, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class GoalDatabase : RoomDatabase(){
 
