@@ -60,7 +60,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.Popup
 import com.goal.goalapp.R
 import com.goal.goalapp.ui.helper.convertDateToStringFormat
-import java.util.Date
+import java.time.LocalDate
+
 
 val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
 
@@ -131,8 +132,8 @@ fun EmailInput(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateInput(
-    date: Date?,
-    onDateChange: (Date) -> Unit,
+    date: LocalDate?,
+    onDateChange: (LocalDate) -> Unit,
     label: String,
     color: TextFieldColors = OutlinedTextFieldDefaults.colors(),
     iconColor: Color =  LocalContentColor.current,
@@ -141,10 +142,11 @@ fun DateInput(
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
 
-    // Launch a coroutine to listen for changes in the selected date
+    // listen for changes of the selected date and convert it to LocalDate
     LaunchedEffect(datePickerState.selectedDateMillis) {
         datePickerState.selectedDateMillis?.let {
-            onDateChange(Date(it))
+            // converts milliseconds to days for LocalDate
+            onDateChange(LocalDate.ofEpochDay(it / (24 * 60 * 60 * 1000)))
         }
     }
 
@@ -234,9 +236,9 @@ fun NotesInput(
 @Preview
 @Composable
 fun DateInputPreview() {
-    val date = remember { mutableStateOf(Date()) }
+    val date = remember { mutableStateOf(LocalDate.now()) }
     DateInput(
-        date = Date(date.value.time),
+        date = date.value,
         onDateChange = { date.value = it },
         label = "Date of Birth"
     )

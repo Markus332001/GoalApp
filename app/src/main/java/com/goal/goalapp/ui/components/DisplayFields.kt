@@ -13,12 +13,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.goal.goalapp.R
 
@@ -93,7 +99,33 @@ fun ProgressBar(progress: Float, modifier: Modifier = Modifier) {
             )
         }
 
+    }
 }
+
+@Composable
+fun ScrollableTextField(
+    height: Int,
+    text: String
+) {
+
+    val scrollState = rememberScrollState()
+
+    // Box with the scrollable text
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .fillMaxWidth()
+            .height(height.dp)
+            .verticalScroll(scrollState)
+            .background(colorResource(R.color.cardsBackground))
+    ) {
+        Text(
+            text = text,
+            textAlign = TextAlign.Start,
+            modifier = Modifier.fillMaxWidth().padding(16.dp)
+        )
+    }
+
 }
 
 @Preview

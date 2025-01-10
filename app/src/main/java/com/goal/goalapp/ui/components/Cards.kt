@@ -1,14 +1,18 @@
 package com.goal.goalapp.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,14 +23,16 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.goal.goalapp.R
-import com.goal.goalapp.data.DaysOfWeek
 import com.goal.goalapp.data.Frequency
 import com.goal.goalapp.ui.helper.getDaysOfWeekShort
 import com.goal.goalapp.ui.helper.convertDateToStringFormat
-import java.util.Date
+import com.goal.goalapp.ui.helper.getFrequencyString
+import java.time.DayOfWeek
+import java.time.LocalDate
 
 @Composable
 fun RoutineCard(
@@ -35,11 +41,12 @@ fun RoutineCard(
     progressConnected: Boolean,
     progress: Float = 0f,
     withProgressBar: Boolean,
-    startDate: Date?,
-    daysOfWeek: List<DaysOfWeek>? = null,
+    startDate: LocalDate?,
+    daysOfWeek: List<DayOfWeek>? = null,
     intervalDays: Int? = null,
-    endDate: Date? = null,
-    endFrequency: Int? = null,
+    endDate: LocalDate? = null,
+    targetValue: Int? = null,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ){
     Box(
@@ -48,11 +55,12 @@ fun RoutineCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(colorResource(R.color.cardsBackground))
+            .clickable {onClick()}
     ){
         Column(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(top = 10.dp, bottom = 16.dp, start = 16.dp, end = 16.dp)
         ){
             /**
              * Title and Progress Connected
@@ -84,32 +92,10 @@ fun RoutineCard(
                 Row(
                     modifier = Modifier.padding(bottom = 10.dp)
                 ) {
-                    when (frequency) {
-                        Frequency.Daily -> {
-                            Text(
-                                text = stringResource(R.string.daily),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-
-                        Frequency.Weekly -> {
-                            Text(
-                                text = stringResource(R.string.weekly) + ": " +
-                                        getDaysOfWeekShort(daysOfWeek ?: emptyList())
-                                            .joinToString(", ") { it },
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-
-                        Frequency.IntervalDays -> {
-                            Text(
-                                text = stringResource(R.string.every) + " " + intervalDays.toString() + " " + stringResource(
-                                    R.string.time
-                                ),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    }
+                    Text(
+                        text = getFrequencyString(frequency = frequency, intervalDays = intervalDays, daysOfWeek = daysOfWeek),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
 
@@ -128,10 +114,10 @@ fun RoutineCard(
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
-                if(endDate != null || endFrequency != null){
+                if(endDate != null || targetValue != null){
                     Text(
                         text = stringResource(R.string.end) + ": " +
-                                if(endDate == null) stringResource(R.string.after) + " " + endFrequency.toString()
+                                if(endDate == null) stringResource(R.string.after) + " " + targetValue.toString()
                                         + " " + stringResource(R.string.time)  else
                                     convertDateToStringFormat(endDate),
                         style = MaterialTheme.typography.bodyMedium
@@ -159,6 +145,7 @@ fun RoutineCard(
 
 
 
+
 @Preview
 @Composable
 fun RoutineCardPreview(){
@@ -166,11 +153,12 @@ fun RoutineCardPreview(){
         title = "Test",
         frequency = Frequency.Weekly,
         progressConnected = true,
-        startDate = Date(),
-        daysOfWeek = listOf(DaysOfWeek.Monday, DaysOfWeek.Wednesday, DaysOfWeek.Friday),
+        startDate = LocalDate.now(),
+        daysOfWeek = listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY),
         intervalDays = 4,
-        endFrequency = 2,
+        targetValue = 2,
         progress = 0.2f,
+        onClick = {},
         withProgressBar = false
     )
 }

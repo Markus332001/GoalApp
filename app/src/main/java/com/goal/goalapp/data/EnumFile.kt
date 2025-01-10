@@ -7,7 +7,3 @@ enum class CompletionType {
 enum class Frequency {
     Daily, Weekly, IntervalDays
 }
-
-enum class DaysOfWeek {
-    Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
-}

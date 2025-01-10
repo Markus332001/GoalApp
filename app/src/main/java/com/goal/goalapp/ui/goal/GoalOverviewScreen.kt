@@ -54,7 +54,7 @@ fun GoalOverviewScreen(
             Text(
                 text = stringResource(R.string.goal_overview),
                 style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.padding(bottom = 20.dp)
+                modifier = Modifier.padding(bottom = 30.dp)
             )
             LazyColumn{
                 items(items = goals.value) { item ->
@@ -62,7 +62,7 @@ fun GoalOverviewScreen(
                         onClick = { toGoalDetailsScreen(item.id) },
                         goalName = item.title,
                         goalProgress = item.progress,
-                        modifier = Modifier.padding(top = PADDING_BETWEEN_ELEMENTS.dp)
+                        modifier = Modifier.padding(bottom = 20.dp)
                     )
                 }
             }
@@ -86,13 +86,19 @@ fun GoalCard(
 ){
     Box(
         modifier = modifier
+            .shadow(
+                elevation = 8.dp, // height
+                shape = RoundedCornerShape(16.dp), // form
+                clip = false // if out of Box
+            )
             .clickable { onClick() }
             .fillMaxWidth()
             .height(100.dp)
             .background(
                 color = colorResource(R.color.cardsBackground),
                 shape = RoundedCornerShape(16.dp)
-            )){
+            )
+    ){
         Text(
             text = goalName,
             style = MaterialTheme.typography.bodyLarge,

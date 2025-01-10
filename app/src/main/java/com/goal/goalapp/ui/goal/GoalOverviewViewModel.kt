@@ -34,6 +34,4 @@ class GoalOverviewViewModel(
             started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
             initialValue = emptyList()
         )
-
-
 }

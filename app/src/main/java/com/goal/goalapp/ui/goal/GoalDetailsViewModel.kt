@@ -8,13 +8,14 @@ import com.goal.goalapp.data.goal.CompletionCriterion
 import com.goal.goalapp.data.goal.Goal
 import com.goal.goalapp.data.goal.GoalRepository
 import com.goal.goalapp.data.goal.Routine
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.util.Date
+import java.time.LocalDate
 
 class GoalDetailsViewModel(
     private val goalRepository: GoalRepository,
@@ -35,7 +36,7 @@ class GoalDetailsViewModel(
                         progress = it.goal.progress,
                         deadline = it.goal.deadline,
                         notes = it.goal.notes,
-                        routines = it.routines,
+                        routines = it.routines.map{r -> r.routine},
                         completionCriteria = it.completionCriteria
                     )
                 }
@@ -50,29 +51,52 @@ class GoalDetailsViewModel(
         viewModelScope.launch{
             val goalDb = goalRepository.getGoalByIdStream(_goalDetailsUiState.value.goalId).first()
             if(goalDb != null){
-                goalRepository.update(goalDb.copy(progress = newProgress))
+                val newGoalDb = goalDb.copy(progress = newProgress)
+                val goalDbId = goalRepository.update(goalDb.copy(progress = newProgress, id = goalDb.id))
+                println(goalDbId)
+            }
+        }
+    }
+
+    fun updateTargetValue(newValue: Int){
+        /**
+         * Checks if the new value is valid.
+         */
+        if(newValue < 0 || newValue > (_goalDetailsUiState.value.completionCriteria.targetValue?: 0)){
+            return
+        }
+        viewModelScope.launch{
+            val goalWithDetailsDb = goalRepository.getGoalWithDetailsByIdStream(_goalDetailsUiState.value.goalId).first()
+            if(goalWithDetailsDb != null){
+
+                /**
+                 * Checks if the current value is null or the target value is null.
+                 */
+                if(goalWithDetailsDb.completionCriteria.currentValue == null || goalWithDetailsDb.completionCriteria.targetValue == null){
+                    cancel()
+                }
+
+                /**
+                 * Calculates the progress of the goal.
+                 */
+                val progressGoal = newValue.toFloat() / goalWithDetailsDb.completionCriteria.targetValue!!.toFloat()
+
+                /**
+                 * Updates the current value in the database.
+                 */
+                goalRepository.updateGoalWithDetails(goalWithDetailsDb.copy(goal = goalWithDetailsDb.goal.copy(progress = progressGoal),
+                    completionCriteria = goalWithDetailsDb.completionCriteria.copy(currentValue = newValue)))
             }
         }
     }
 
     fun addOrSubtractTargetValue(add: Boolean){
-        var newValue: Int?
-        if(add){
-            newValue = _goalDetailsUiState.value.completionCriteria.currentValue?.plus(1)
-            if(newValue == null || newValue > (_goalDetailsUiState.value.completionCriteria.targetValue?: 0)){
-                return
-            }
-        }else{
-            newValue = _goalDetailsUiState.value.completionCriteria.currentValue?.minus(1)
-            if(newValue == null || newValue < 0){
-                return
-            }
-        }
-        viewModelScope.launch{
-            val goalWithDetailsDb = goalRepository.getGoalWithDetailsByIdStream(_goalDetailsUiState.value.goalId).first()
-            if(goalWithDetailsDb != null){
-               // goalRepository.update(goalWithDetailsDb.copy(completionCriteria.currentValue = newValue))
-            }
+        /**
+         * Adds or subtracts 1 from the current value.
+         */
+        if(_goalDetailsUiState.value.completionCriteria.currentValue != null){
+            val newValue = _goalDetailsUiState.value.completionCriteria.currentValue!! + if(add) + 1 else - 1
+            updateTargetValue(newValue)
         }
     }
 
@@ -82,7 +106,7 @@ data class GoalDetailsUiState(
     val goalId: Int = 0,
     val title: String = "",
     val progress: Float = 0f,
-    val deadline: Date = Date(),
+    val deadline: LocalDate? = null,
     val notes: String = "",
     val routines: List<Routine> = emptyList(),
     val completionCriteria: CompletionCriterion = CompletionCriterion(

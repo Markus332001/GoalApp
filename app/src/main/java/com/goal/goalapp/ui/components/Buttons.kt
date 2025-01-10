@@ -19,7 +19,6 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.goal.goalapp.R
-import java.util.Date
 
 @Composable
 fun SelectButton(
@@ -70,6 +69,7 @@ fun AddComponentButton(
         Text(text = title, style = MaterialTheme.typography.bodyLarge)
     }
 }
+
 
 @Preview
 @Composable

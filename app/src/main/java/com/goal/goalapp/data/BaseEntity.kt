@@ -8,8 +8,6 @@ import androidx.room.PrimaryKey
  */
 @Keep
 open class BaseEntity(
-    @PrimaryKey(autoGenerate = true)
-    var id: Int = 0,
     var createdAt: Long = System.currentTimeMillis(),
     var createdBy: Int = 0,
     var updatedAt: Long = System.currentTimeMillis(),

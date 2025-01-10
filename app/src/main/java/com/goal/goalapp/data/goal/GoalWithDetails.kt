@@ -13,7 +13,8 @@ data class GoalWithDetails(
     val completionCriteria: CompletionCriterion,
     @Relation(
         parentColumn = "id",
-        entityColumn = "goalId"
+        entityColumn = "goalId",
+        entity = Routine::class
     )
-    val routines: List<Routine>
+    val routines: List<RoutineWithCalendarDays>
 )

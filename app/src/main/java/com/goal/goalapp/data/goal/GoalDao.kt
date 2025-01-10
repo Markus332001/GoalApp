@@ -21,8 +21,14 @@ interface GoalDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRoutines(routines: List<Routine>)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRoutine(routine: Routine): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRoutineCalendarDays(routineCalendarDays: List<RoutineCalendarDays>)
+
     @Update
-    suspend fun update(goal: Goal)
+    suspend fun update(goal: Goal):Int
 
 
     @Update
@@ -33,6 +39,9 @@ interface GoalDao {
 
     @Update
     suspend fun updateRoutines(routines: List<Routine>)
+
+    @Update
+    suspend fun updateRoutineCalendarDays(routineCalendarDays: List<RoutineCalendarDays>)
 
     @Delete
     suspend fun deleteGoal(goal: Goal)
@@ -48,8 +57,9 @@ interface GoalDao {
     fun getCompletionCriterionById(completionCriterionId: Int): CompletionCriterion?
 
     @Query("SELECT * FROM routine WHERE id = :routineId")
-    fun getRoutineById(routineId: Int): Routine?
+    fun getRoutineByIdStream(routineId: Int): Flow<Routine?>
 
-
-
+    @Transaction
+    @Query("SELECT * FROM routine WHERE id = :routineId")
+    fun getRoutineWithCalenderDaysByIdStream(routineId: Int): Flow<RoutineWithCalendarDays?>
 }

@@ -2,6 +2,7 @@ package com.goal.goalapp.data.user
 
 import androidx.room.Entity
 import androidx.room.Index
+import androidx.room.PrimaryKey
 import com.goal.goalapp.data.BaseEntity
 
 @Entity(
@@ -12,6 +13,8 @@ import com.goal.goalapp.data.BaseEntity
     ]
 )
 data class User(
+    @PrimaryKey(autoGenerate = true)
+    var id: Int = 0,
     val username: String,
     val email: String,
     val passwordHash: String

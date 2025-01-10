@@ -52,14 +52,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.goal.goalapp.R
-import com.goal.goalapp.data.DaysOfWeek
 import com.goal.goalapp.data.Frequency
 import com.goal.goalapp.ui.AppViewModelProvider
+import com.goal.goalapp.ui.components.BackArrow
 import com.goal.goalapp.ui.components.DateInput
 import com.goal.goalapp.ui.components.SelectButton
 import com.goal.goalapp.ui.helper.getDayShortForm
+import java.time.DayOfWeek
 import java.time.LocalDate
-import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -110,14 +110,7 @@ fun CreateRoutineScreenBody(
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = stringResource(R.string.back_arrow),
-            modifier = Modifier
-                .padding(bottom = 20.dp)
-                .clickable { navigateBack() }
-                .size(30.dp)
-        )
+        BackArrow(navigateBack = navigateBack)
 
         /**
          * Headline
@@ -217,6 +210,7 @@ fun CreateRoutineScreenBody(
                 title = stringResource(R.string.date),
                 date = routine.startDate,
                 onDateChange = { createGoalViewModel.updateRoutineStartDate(it) },
+                isStart = true,
                 modifier = Modifier
                     .weight(0.50f)
                     .height(125.dp)
@@ -241,13 +235,13 @@ fun CreateRoutineScreenBody(
             SelectButtonWithIntInput(
                 firstPart = stringResource(R.string.after),
                 secondPart = stringResource(R.string.time),
-                selected = routine.endFrequency != null,
+                selected = routine.targetValue != null,
                 onChange = {
                     if((it?: -1) > 1) {
                         createGoalViewModel.updateRoutineEndDate(null, it)
                     }
                 },
-                input = routine.endFrequency,
+                input = routine.targetValue,
                 modifier = Modifier
                     .weight(0.5f)
                     .height(125.dp)
@@ -258,6 +252,7 @@ fun CreateRoutineScreenBody(
                 title = stringResource(R.string.date),
                 date = routine.endDate,
                 onDateChange = { createGoalViewModel.updateRoutineEndDate(it, null) },
+                isStart = false,
                 modifier = Modifier
                     .weight(0.50f)
                     .height(125.dp)
@@ -293,14 +288,14 @@ fun checkRoutineValidity(routine: CreateRoutine): Boolean {
     return routine.title != "" &&
             (routine.frequency != null && if(routine.frequency == Frequency.IntervalDays) (routine.intervalDays?: -1 ) >= 1 else true) &&
             (routine.startDate != null ) &&
-            ((if(routine.endFrequency != null) routine.endFrequency > 0 else false) || (routine.endDate != null && routine.endDate != Date(0)))
+            ((if(routine.targetValue != null) routine.targetValue > 0 else false) || (routine.endDate != null))
 }
 
 @Composable
 fun SelectButtonWeekly(
     title: String,
     onClick: () -> Unit,
-    daysOfWeek: List<DaysOfWeek>,
+    daysOfWeek: List<DayOfWeek>,
     selected: Boolean,
     modifier: Modifier = Modifier
 ){
@@ -342,14 +337,14 @@ fun SelectButtonWeekly(
                 ){
                     for(i in 0..3){
                         ClickableCircle(
-                            day = DaysOfWeek.entries[i],
-                            dayAsShortForm = getDayShortForm(DaysOfWeek.entries[i]),
+                            day = DayOfWeek.entries[i],
+                            dayAsShortForm = getDayShortForm(DayOfWeek.entries[i]),
                             size = 30,
                             fontSize = 10,
                             onClick = {
                                 onClick()
                             },
-                            isClicked = DaysOfWeek.entries[i] in daysOfWeek
+                            isClicked = DayOfWeek.entries[i] in daysOfWeek
                         )
                     }
                 }
@@ -359,14 +354,14 @@ fun SelectButtonWeekly(
                 ){
                     for(i in 4..6){
                         ClickableCircle(
-                            day = DaysOfWeek.entries[i],
-                            dayAsShortForm = getDayShortForm(DaysOfWeek.entries[i]),
+                            day = DayOfWeek.entries[i],
+                            dayAsShortForm = getDayShortForm(DayOfWeek.entries[i]),
                             size = 30,
                             fontSize = 10,
                             onClick = {
                                 onClick()
                             },
-                            isClicked = DaysOfWeek.entries[i] in daysOfWeek
+                            isClicked = DayOfWeek.entries[i] in daysOfWeek
                         )
                     }
                 }
@@ -418,8 +413,8 @@ fun SelectButtonWithIntInput(
 @Composable
 fun SelectWeeklyDialog(
     setShowDialog: (Boolean) -> Unit,
-    setDaysSelected: (List<DaysOfWeek>) -> Unit,
-    oldSelectedDays: List<DaysOfWeek>,
+    setDaysSelected: (List<DayOfWeek>) -> Unit,
+    oldSelectedDays: List<DayOfWeek>,
     modifier: Modifier = Modifier
 ){
     var isValid by remember { mutableStateOf(false) }
@@ -462,14 +457,14 @@ fun SelectWeeklyDialog(
                     ){
                         for(i in 0..3){
                             ClickableCircle(
-                                day = DaysOfWeek.entries[i],
-                                dayAsShortForm = getDayShortForm(DaysOfWeek.entries[i]),
+                                day = DayOfWeek.entries[i],
+                                dayAsShortForm = getDayShortForm(DayOfWeek.entries[i]),
                                 size = 50,
                                 fontSize = 20,
                                 onClick = {
                                     selectedDays = addOrRemoveDay(it, selectedDays)
                                 },
-                                isClicked = DaysOfWeek.entries[i] in selectedDays
+                                isClicked = DayOfWeek.entries[i] in selectedDays
                             )
                         }
                     }
@@ -479,21 +474,21 @@ fun SelectWeeklyDialog(
                     ){
                         for(i in 4..6){
                             ClickableCircle(
-                                day = DaysOfWeek.entries[i],
-                                dayAsShortForm = getDayShortForm(DaysOfWeek.entries[i]),
+                                day = DayOfWeek.entries[i],
+                                dayAsShortForm = getDayShortForm(DayOfWeek.entries[i]),
                                 size = 50,
                                 fontSize = 20,
                                 onClick = {
                                     selectedDays = addOrRemoveDay(it, selectedDays)
                                 },
-                                isClicked = DaysOfWeek.entries[i] in selectedDays
+                                isClicked = DayOfWeek.entries[i] in selectedDays
                             )
                         }
                     }
                 }
 
                 /**
-                 * Cancel or confirm button
+                 * Cancel and confirm button
                  */
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -540,8 +535,9 @@ fun SelectWeeklyDialog(
 @Composable
 fun StartEndDateInput(
     title: String,
-    date: Date?,
-    onDateChange: (Date) -> Unit,
+    date: LocalDate?,
+    onDateChange: (LocalDate) -> Unit,
+    isStart: Boolean,
     modifier: Modifier = Modifier
 
 ){
@@ -579,7 +575,7 @@ fun StartEndDateInput(
             DateInput(
                 date = date,
                 onDateChange = { onDateChange(it) },
-                label = stringResource(R.string.start),
+                label = if(isStart) stringResource(R.string.start) else stringResource(R.string.end),
                 color = if (selected) selectedColor else OutlinedTextFieldDefaults.colors(),
                 iconColor = if (selected) colorResource(R.color.button_font_light) else LocalContentColor.current
             )
@@ -590,7 +586,7 @@ fun StartEndDateInput(
 
 
 
-fun addOrRemoveDay(day: DaysOfWeek, selectedDays: List<DaysOfWeek>): List<DaysOfWeek>{
+fun addOrRemoveDay(day: DayOfWeek, selectedDays: List<DayOfWeek>): List<DayOfWeek>{
     if(day in selectedDays){
         return selectedDays.filter { it != day }
     }else{
@@ -601,7 +597,7 @@ fun addOrRemoveDay(day: DaysOfWeek, selectedDays: List<DaysOfWeek>): List<DaysOf
 
 
 @Composable
-fun ClickableCircle(day: DaysOfWeek, dayAsShortForm: String, size: Int, fontSize: Int, onClick: (DaysOfWeek) -> Unit, isClicked: Boolean = false) {
+fun ClickableCircle(day: DayOfWeek, dayAsShortForm: String, size: Int, fontSize: Int, onClick: (DayOfWeek) -> Unit, isClicked: Boolean = false) {
     Box(
         modifier = Modifier
             .size(size.dp)
@@ -625,5 +621,5 @@ fun ClickableCircle(day: DaysOfWeek, dayAsShortForm: String, size: Int, fontSize
 @Preview
 @Composable
 fun ClickableCirclePreview(){
-   ClickableCircle(day = DaysOfWeek.Friday, size = 50, fontSize = 20, dayAsShortForm = "Fr", onClick = {})
+   ClickableCircle(day = DayOfWeek.FRIDAY, size = 50, fontSize = 20, dayAsShortForm = "Fr", onClick = {})
 }

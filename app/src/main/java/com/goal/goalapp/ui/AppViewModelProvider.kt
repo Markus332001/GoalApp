@@ -11,6 +11,7 @@ import com.goal.goalapp.GoalApplication
 import com.goal.goalapp.ui.goal.CreateGoalViewModel
 import com.goal.goalapp.ui.goal.GoalDetailsViewModel
 import com.goal.goalapp.ui.goal.GoalOverviewViewModel
+import com.goal.goalapp.ui.goal.RoutineDetailsViewModel
 import com.goal.goalapp.ui.login.LoginViewModel
 import com.goal.goalapp.ui.login.RegisterViewModel
 
@@ -57,6 +58,12 @@ object AppViewModelProvider{
             GoalDetailsViewModel(
                 goalApplication().container.goalRepository,
                 goalApplication().container.userSessionStorage
+            )
+        }
+
+        initializer {
+            RoutineDetailsViewModel(
+                goalApplication().container.goalRepository
             )
         }
 

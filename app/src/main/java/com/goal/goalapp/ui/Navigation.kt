@@ -31,6 +31,7 @@ import com.goal.goalapp.ui.goal.CreateRoutine
 import com.goal.goalapp.ui.goal.CreateRoutineScreen
 import com.goal.goalapp.ui.goal.GoalDetailsScreen
 import com.goal.goalapp.ui.goal.GoalOverviewScreen
+import com.goal.goalapp.ui.goal.RoutineDetailsScreen
 import com.goal.goalapp.ui.login.StartScreen
 import com.goal.goalapp.ui.login.LoginScreen
 import com.goal.goalapp.ui.login.RegisterScreen
@@ -72,7 +73,8 @@ enum class NavigationScreens (@StringRes val title: Int){
     ChatsMain(title = R.string.chats),
     CreateGoalScreen(title = R.string.create_goal),
     CreateRoutineScreen(title = R.string.create_routine),
-    GoalDetailsScreen(title = R.string.goal_details);
+    GoalDetailsScreen(title = R.string.goal_details),
+    RoutineDetailsScreen(title = R.string.routine_details);
 
     // function for dynamic routes
     fun withArgs(vararg args: String): String {
@@ -161,7 +163,11 @@ fun Navigation(
             CreateGoalScreen(
                 navigateBack = { navController.navigateUp() },
                 toCreateRoutineScreen = { navController.navigate(NavigationScreens.CreateRoutineScreen.name) },
-                createGoalViewModel = createGoalViewModel
+                toEditRoutineScreen = {
+                    /*TODO*/
+                },
+                createGoalViewModel = createGoalViewModel,
+                goalId = TODO(),
             )
         }
         composable(route = NavigationScreens.CreateRoutineScreen.name) {
@@ -181,9 +187,27 @@ fun Navigation(
             val goalId = backStackEntry.arguments?.getInt("goalId")
             GoalDetailsScreen(
                 goalId = goalId,
+                navigateBack = { navController.navigateUp() },
+                toRoutineDetailsScreen = { routineId ->
+                    navController.navigate(NavigationScreens.RoutineDetailsScreen.withArgs(routineId.toString()))
+                },
+                toEditGoalScreen = { goalId ->
+                    /*TODO*/
+                }
+            )
+        }
+
+        composable(
+            route ="${NavigationScreens.RoutineDetailsScreen.name}/{routineId}",
+            arguments = listOf(navArgument("routineId") {
+                type = NavType.IntType
+            })
+        ) { backStackEntry ->
+            val routineId = backStackEntry.arguments?.getInt("routineId")
+            RoutineDetailsScreen(
+                routineId = routineId,
                 navigateBack = { navController.navigateUp() }
             )
-
         }
 
         composable(route = NavigationScreens.CalenderMain.name) {

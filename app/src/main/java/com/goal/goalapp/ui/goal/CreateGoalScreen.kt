@@ -1,5 +1,6 @@
 package com.goal.goalapp.ui.goal
 
+import android.util.Log
 import androidx.compose.foundation.MutatePriority
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -54,11 +55,12 @@ import com.goal.goalapp.ui.components.DateInput
 import com.goal.goalapp.ui.components.NotesInput
 import com.goal.goalapp.ui.components.SelectButton
 import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import com.goal.goalapp.data.Frequency
 import com.goal.goalapp.ui.components.AddComponentButton
+import com.goal.goalapp.ui.components.BackArrow
 import com.goal.goalapp.ui.components.RoutineCard
-import java.util.Date
 
 const val PADDING_PREVIOUS_SECTION = 40
 const val PADDING_AFTER_HEADLINE = 10
@@ -67,14 +69,20 @@ const val PADDING_BETWEEN_ELEMENTS = 10
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateGoalScreen(
+    goalId: Int?,
     navigateBack: () -> Unit,
     toCreateRoutineScreen: () -> Unit,
+    toEditRoutineScreen: (Int) -> Unit,
     modifier: Modifier = Modifier,
     createGoalViewModel: CreateGoalViewModel = viewModel(factory = AppViewModelProvider.Factory),
 ){
     val createGoal by createGoalViewModel.createGoal.collectAsState()
     var showReachTargetValuePopup by remember { mutableStateOf(false) }
     val createGoalState = createGoalViewModel.createGoalState.collectAsState()
+
+    if(goalId != null && createGoal.id != goalId){
+        createGoalViewModel.getGoalDetailsFromDb(goalId)
+    }
 
     /**
      * Completion Criteria Reach Target Value Popup
@@ -96,6 +104,7 @@ fun CreateGoalScreen(
         navigateBack = navigateBack,
         setShowPopup = { showReachTargetValuePopup = it },
         toCreateRoutineScreen = toCreateRoutineScreen,
+        toEditRoutineScreen = {toEditRoutineScreen(it) },
         createGoalState = createGoalState,
         modifier = modifier
     )
@@ -118,6 +127,7 @@ fun CreateGoalScreenBody(
     setShowPopup: (Boolean) -> Unit,
     toCreateRoutineScreen: () -> Unit,
     createGoalState: State<CreateGoalState>,
+    toEditRoutineScreen: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ){
     var isValid by remember { mutableStateOf(false) }
@@ -130,18 +140,7 @@ fun CreateGoalScreenBody(
          * Back arrow
          */
         item {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.back_arrow),
-                modifier = Modifier
-                    .padding(bottom = 20.dp)
-                    .clickable {
-                        createGoalViewModel.resetCreateGoal()
-                        navigateBack()
-                    }
-                    .size(30.dp)
-            )
-
+            BackArrow(navigateBack = navigateBack)
         }
 
         /**
@@ -173,7 +172,9 @@ fun CreateGoalScreenBody(
                 value = createGoal.title,
                 onValueChange = { createGoalViewModel.updateGoalTitle(it) },
                 label = { Text(stringResource(R.string.title)) },
-                modifier = Modifier.fillMaxWidth()
+
+                modifier = Modifier.fillMaxWidth(),
+
             )
         }
 
@@ -308,8 +309,9 @@ fun CreateGoalScreenBody(
                 daysOfWeek = item.daysOfWeek,
                 intervalDays = item.intervalDays,
                 endDate = item.endDate,
-                endFrequency = item.endFrequency,
+                targetValue = item.targetValue,
                 withProgressBar = false,
+                onClick = { /*TODO*/  }, //es gibt ja das Item noch nicht in der Datenbank, deswegen muss es ja von CreateGoalViewModel genommen werden
                 modifier = Modifier.padding(top = PADDING_BETWEEN_ELEMENTS.dp)
             )
         }
@@ -351,7 +353,7 @@ fun CreateGoalScreenBody(
 
 fun checkCreateGoalValidity(createGoal: CreateGoal): Boolean {
     return createGoal.title != "" &&
-            createGoal.deadline != Date(0) &&
+            createGoal.deadline != null &&
             (createGoal.completionCriteria?.completionType != null)
 
 }

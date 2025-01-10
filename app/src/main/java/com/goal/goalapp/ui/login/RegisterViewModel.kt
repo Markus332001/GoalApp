@@ -22,7 +22,7 @@ class RegisterViewModel(
         val hashedPassword = hashPassword(password)
         viewModelScope.launch {
             try {
-                val newUser: User = User(username, email, hashedPassword)
+                val newUser: User = User(username = username, email = email, passwordHash = hashedPassword)
                 userRepository.insertUser(newUser)
                 _registerState.value = RegisterState.Success
             } catch (e: Exception) {

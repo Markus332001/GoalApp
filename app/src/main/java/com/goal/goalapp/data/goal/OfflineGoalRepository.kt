@@ -11,11 +11,15 @@ class OfflineGoalRepository(private val goalDao: GoalDao) : GoalRepository  {
 
     override suspend fun insertRoutines(routines: List<Routine>) = goalDao.insertRoutines(routines)
 
+    override suspend fun insertRoutine(routine: Routine): Long = goalDao.insertRoutine(routine)
+
+    override suspend fun insertRoutineCalendarDays(routineCalendarDays: List<RoutineCalendarDays>) = goalDao.insertRoutineCalendarDays(routineCalendarDays)
+
     @Transaction
     override suspend fun insertGoalWithDetails(
         goal: Goal,
         completionCriteria: CompletionCriterion,
-        routines: List<Routine>
+        routinesWithCalendarDays: List<RoutineWithCalendarDays>
     ): Long {
         val goalId = insertGoal(goal)
         /**
@@ -26,26 +30,32 @@ class OfflineGoalRepository(private val goalDao: GoalDao) : GoalRepository  {
         insertCompletionCriterion(completionCriteriaDb)
 
         /**
-         * Sets the goalId of the routines to the goalId of the goal
+         * Sets the goalId of the routine to the goalId of the goal
          * Adds the routines to the database
+         * And adds the routineCalendarDays to the database
          */
-        val routinesDb: MutableList<Routine> = mutableListOf()
-        routines.forEach{
-            routinesDb.add(
-                it.copy(goalId = goalId.toInt())
-            )
+        for(routineWithCalendarDays in routinesWithCalendarDays){
+
+            val routine = routineWithCalendarDays.routine.copy(goalId = goalId.toInt())
+            val routineId = insertRoutine(routine)
+
+            val routineCalendarDays = routineWithCalendarDays.calendarDays.map {
+                it.copy(routineId = routineId.toInt())
+            }
+            insertRoutineCalendarDays(routineCalendarDays)
         }
-        insertRoutines(routinesDb)
 
         return goalId
     }
 
-    override suspend fun update(goal: Goal) = goalDao.update(goal)
+    override suspend fun update(goal: Goal): Int = goalDao.update(goal)
 
     override suspend fun updateGoalWithDetails(goalWithDetails: GoalWithDetails){
         update(goalWithDetails.goal)
         updateCompletionCriterion(goalWithDetails.completionCriteria)
-        updateRoutines(goalWithDetails.routines)
+        updateRoutines(goalWithDetails.routines.map { it.routine })
+        val routineCalendarDays = goalWithDetails.routines.flatMap { it.calendarDays }
+        updateRoutineCalendarDays(routineCalendarDays)
     }
 
     override suspend fun updateCompletionCriterion(completionCriterion: CompletionCriterion) = goalDao.updateCompletionCriteria(completionCriterion)
@@ -53,6 +63,9 @@ class OfflineGoalRepository(private val goalDao: GoalDao) : GoalRepository  {
     override suspend fun updateRoutine(routine: Routine) = goalDao.updateRoutine(routine)
 
     override suspend fun updateRoutines(routines: List<Routine>) = goalDao.updateRoutines(routines)
+
+    override suspend fun updateRoutineCalendarDays(routineCalendarDays: List<RoutineCalendarDays>) = goalDao.updateRoutineCalendarDays(routineCalendarDays)
+
 
     override suspend fun deleteGoal(goal: Goal) = goalDao.deleteGoal(goal)
 
@@ -62,5 +75,7 @@ class OfflineGoalRepository(private val goalDao: GoalDao) : GoalRepository  {
 
     override fun getCompletionCriterionById(completionCriterionId: Int): CompletionCriterion? = goalDao.getCompletionCriterionById(completionCriterionId)
 
-    override fun getRoutineById(routineId: Int): Routine? = goalDao.getRoutineById(routineId)
+    override fun getRoutineByIdStream(routineId: Int): Flow<Routine?> = goalDao.getRoutineByIdStream(routineId)
+
+    override fun getRoutineWithCalendarDaysByIdStream(routineId: Int): Flow<RoutineWithCalendarDays?> = goalDao.getRoutineWithCalenderDaysByIdStream(routineId)
 }
