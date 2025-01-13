@@ -19,7 +19,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
@@ -32,6 +33,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,21 +58,53 @@ import com.goal.goalapp.data.Frequency
 import com.goal.goalapp.ui.AppViewModelProvider
 import com.goal.goalapp.ui.components.BackArrow
 import com.goal.goalapp.ui.components.DateInput
+import com.goal.goalapp.ui.components.DeleteDialog
 import com.goal.goalapp.ui.components.SelectButton
 import com.goal.goalapp.ui.helper.getDayShortForm
 import java.time.DayOfWeek
 import java.time.LocalDate
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun CreateRoutineScreen(
+    routineId: Int?,
     navigateBack: () -> Unit,
-    toCreateGoalScreen: () -> Unit,
+    toGoalDetailsScreen: (Int) -> Unit,
     modifier: Modifier = Modifier,
     createGoalViewModel: CreateGoalViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ){
     val routine by createGoalViewModel.routine.collectAsState()
+    var showDeleteDialog by remember { mutableStateOf(false) }
     var showWeeklyDialog by remember { mutableStateOf(false) }
+    val createEditState = createGoalViewModel.createEditState.collectAsState()
+
+    //is called when this composable gets initialized
+    LaunchedEffect(Unit) {
+        if(routineId != null){
+            createGoalViewModel.getRoutineDetailsFromDb(routineId)
+        }
+    }
+
+    /**
+     * Delete Dialog
+     */
+    if(showDeleteDialog){
+        DeleteDialog(
+            onDismiss = { showDeleteDialog = false },
+            onConfirm = {
+                createGoalViewModel.deleteRoutine()
+                createGoalViewModel.resetCreateRoutine()
+
+                //goes back when the routine is in create state or it comes from the edit screen of goal
+                if(routine.id == 0 ||  createGoalViewModel.createGoal.value.id != 0){
+                    navigateBack()
+                }else{
+                    toGoalDetailsScreen(routine.goalId)
+                }
+                showDeleteDialog = false
+            }
+        )
+    }
 
     /**
      * Weekly Dialog
@@ -83,11 +117,31 @@ fun CreateRoutineScreen(
         )
     }
 
+    /**
+     * If the goal was successfully created, navigate back to the goal overview screen
+     */
+    if(createEditState.value is CreateEditState.Success){
+        createGoalViewModel.resetCreateRoutine()
+        navigateBack()
+    }
+
     CreateRoutineScreenBody(
-        navigateBack = navigateBack,
+        navigateBack = {
+            createGoalViewModel.resetCreateRoutine()
+            navigateBack()
+        },
         routine = routine,
         createGoalViewModel = createGoalViewModel,
         setShowDialog = { showWeeklyDialog = it },
+        deleteRoutine = {
+            if(routine.id != 0){
+                showDeleteDialog = true
+            }else{
+                createGoalViewModel.removeRoutineFromGoal()
+                createGoalViewModel.resetCreateRoutine()
+                navigateBack()
+            }
+        },
         modifier = modifier
     )
 
@@ -99,28 +153,51 @@ fun CreateRoutineScreenBody(
     routine: CreateRoutine,
     createGoalViewModel: CreateGoalViewModel,
     setShowDialog: (Boolean) -> Unit,
+    deleteRoutine: () -> Unit,
     modifier: Modifier = Modifier
 ){
     val scrollState = rememberScrollState()
     var isValid by remember { mutableStateOf(false) }
+    val isRoutineInGoal = createGoalViewModel.isRoutineInGoal()
     isValid = checkRoutineValidity(routine)
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
             .padding(16.dp)
     ) {
-        BackArrow(navigateBack = navigateBack)
+        BackArrow(
+
+            navigateBack = navigateBack
+        )
 
         /**
          * Headline
          */
-        Text(
-            text = stringResource(R.string.create_routine),
-            style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(bottom = 15.dp)
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(bottom = PADDING_PREVIOUS_SECTION.dp)
+        ) {
+            Text(
+                text = if (routine.id == 0) stringResource(R.string.create_routine) else stringResource(
+                    R.string.edit_routine
+                ),
+                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold)
+            )
 
+            if(isRoutineInGoal || routine.id != 0){
+                //Delete Icon
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = stringResource(R.string.delete),
+                    modifier = Modifier
+                        .padding(start = 10.dp)
+                        .size(30.dp)
+                        .clickable { deleteRoutine()}
+                )
+            }
+        }
 
         /**
          * Title
@@ -265,8 +342,7 @@ fun CreateRoutineScreenBody(
          */
         Button(
             onClick = {
-                createGoalViewModel.addRoutine()
-                navigateBack()
+                createGoalViewModel.addOrEditRoutine()
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = colorResource(R.color.primary),
@@ -288,7 +364,7 @@ fun checkRoutineValidity(routine: CreateRoutine): Boolean {
     return routine.title != "" &&
             (routine.frequency != null && if(routine.frequency == Frequency.IntervalDays) (routine.intervalDays?: -1 ) >= 1 else true) &&
             (routine.startDate != null ) &&
-            ((if(routine.targetValue != null) routine.targetValue > 0 else false) || (routine.endDate != null))
+            ((if(routine.targetValue != null) routine.targetValue > 0 else false) || if(routine.endDate != null) routine.endDate > routine.startDate else false)
 }
 
 @Composable

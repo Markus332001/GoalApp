@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 
 class GoalOverviewViewModel(
     private val goalRepository: GoalRepository,
-    private val userRepository: UserRepository,
     private val userSessionStorage: UserSessionStorage
 ): ViewModel() {
 
@@ -26,8 +25,7 @@ class GoalOverviewViewModel(
     val goals: StateFlow<List<Goal>> = userSessionStorage.userIdFlow
         .filterNotNull()
         .flatMapLatest { userId ->
-            userRepository.getUserWithGoalsByIdStream(userId.toLong())
-                .map { it?.goals ?: emptyList() }
+            goalRepository.getGoalsByUserIdStream(userId)
         }
         .stateIn(
             scope = viewModelScope,

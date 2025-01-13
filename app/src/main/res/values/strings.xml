@@ -75,4 +75,6 @@
     <string name="november">November</string>
     <string name="december">Dezember</string>
     <string name="routine_details">Routine Details</string>
+    <string name="edit_goal">Bearbeite Ziel</string>
+    <string name="edit_routine">Bearbeite Routine</string>
 </resources>

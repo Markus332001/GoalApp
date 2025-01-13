@@ -34,10 +34,6 @@ interface UserDao {
     fun getUserWithGroupsById(userId: Long): Flow<UserWithGroups?>
 
     @Transaction
-    @Query("SELECT * FROM users WHERE id = :userId")
-    fun getUserWithGoalsById(userId: Long): Flow<UserWithGoals?>
-
-    @Transaction
     @Query("SELECT * FROM users WHERE id = :userId LIMIT 1")
     fun getUserWithSession(userId: Int): Flow<UserWithSession?>
 }

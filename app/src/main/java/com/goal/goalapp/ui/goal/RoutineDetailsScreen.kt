@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -49,6 +50,7 @@ import com.goal.goalapp.data.goal.Routine
 import com.goal.goalapp.data.goal.RoutineWithCalendarDays
 import com.goal.goalapp.ui.AppViewModelProvider
 import com.goal.goalapp.ui.components.BackArrow
+import com.goal.goalapp.ui.components.DeleteDialog
 import com.goal.goalapp.ui.components.ProgressBar
 import com.goal.goalapp.ui.helper.CalendarDaysBackgroundColorType
 import com.goal.goalapp.ui.helper.CalendarDisplay
@@ -65,6 +67,7 @@ import java.time.YearMonth
 fun RoutineDetailsScreen(
     routineId: Int?,
     navigateBack: () -> Unit,
+    toEditRoutineScreen: (Int) -> Unit,
     modifier: Modifier = Modifier,
     routineDetailsViewModel: RoutineDetailsViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ){
@@ -88,6 +91,7 @@ fun RoutineDetailsScreen(
             calendarYearMonth = calendarYearMonth,
             addMonthCalendarYearMonth = {routineDetailsViewModel.addMonthCalendarYearMonth()},
             substractMonthCalendarYearMonth = {routineDetailsViewModel.substractMonthCalendarYearMonth()},
+            toEditRoutineScreen = toEditRoutineScreen,
             modifier = modifier
         )
     }
@@ -101,6 +105,7 @@ fun RoutineDetailsBody(
     calendarYearMonth: State<YearMonth>,
     addMonthCalendarYearMonth: () -> Unit,
     substractMonthCalendarYearMonth: () -> Unit,
+    toEditRoutineScreen: (Int) -> Unit,
     modifier: Modifier = Modifier
 ){
     val scrollState = rememberScrollState()
@@ -121,12 +126,26 @@ fun RoutineDetailsBody(
         /**
          * Title
          */
-        Text(
-            text = routine.routine.title,
-            style = MaterialTheme.typography.headlineLarge,
-            modifier = Modifier
-                .padding( bottom = 40.dp)
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(bottom = PADDING_PREVIOUS_SECTION.dp)
+        ){
+            Text(
+                text = routine.routine.title,
+                style = MaterialTheme.typography.headlineLarge,
+                modifier = Modifier
+            )
+
+            //Edit Icon
+            Icon(
+                imageVector = Icons.Default.Create,
+                contentDescription = stringResource(R.string.settings),
+                modifier = Modifier
+                    .padding(start = 10.dp)
+                    .size(30.dp)
+                    .clickable { toEditRoutineScreen(routine.routine.id) }
+            )
+        }
 
         /**
          * Frequency
@@ -224,7 +243,6 @@ fun SmallCalendar(
     substractMonthCalendarYearMonth: () -> Unit,
     modifier: Modifier = Modifier
 ){
-    val date = LocalDate.now() // today
 
     Column(
         modifier = modifier

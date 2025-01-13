@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.goal.goalapp.GoalApplication
+import com.goal.goalapp.ui.calender.CalendarViewModel
 import com.goal.goalapp.ui.goal.CreateGoalViewModel
 import com.goal.goalapp.ui.goal.GoalDetailsViewModel
 import com.goal.goalapp.ui.goal.GoalOverviewViewModel
@@ -41,7 +42,6 @@ object AppViewModelProvider{
         initializer {
             GoalOverviewViewModel(
                 goalApplication().container.goalRepository,
-                goalApplication().container.userRepository,
                 goalApplication().container.userSessionStorage
             )
         }
@@ -64,6 +64,13 @@ object AppViewModelProvider{
         initializer {
             RoutineDetailsViewModel(
                 goalApplication().container.goalRepository
+            )
+        }
+
+        initializer {
+            CalendarViewModel(
+                goalApplication().container.goalRepository,
+                goalApplication().container.userSessionStorage
             )
         }
 

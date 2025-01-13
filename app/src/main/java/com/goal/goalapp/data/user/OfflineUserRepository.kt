@@ -18,9 +18,7 @@ class OfflineUserRepository(private val userDao: UserDao) : UserRepository{
 
     override fun getUserWithGroupsByIdStream(userId: Long): Flow<UserWithGroups?> = userDao.getUserWithGroupsById(userId)
 
-    override fun getUserWithGoalsByIdStream(userId: Long): Flow<UserWithGoals?> = userDao.getUserWithGoalsById(userId)
-
-    override fun getUserWithSessionByIdStream(sessionId: Int): Flow<UserWithSession?> = userDao.getUserWithSession(sessionId)
+     override fun getUserWithSessionByIdStream(sessionId: Int): Flow<UserWithSession?> = userDao.getUserWithSession(sessionId)
 
 
 }

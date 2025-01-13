@@ -1,7 +1,5 @@
 package com.goal.goalapp.ui.goal
 
-import android.util.Log
-import androidx.compose.foundation.MutatePriority
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -16,14 +14,9 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -45,7 +38,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.goal.goalapp.R
@@ -55,11 +47,14 @@ import com.goal.goalapp.ui.components.DateInput
 import com.goal.goalapp.ui.components.NotesInput
 import com.goal.goalapp.ui.components.SelectButton
 import androidx.compose.foundation.lazy.items
-import androidx.compose.runtime.MutableState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
-import com.goal.goalapp.data.Frequency
 import com.goal.goalapp.ui.components.AddComponentButton
 import com.goal.goalapp.ui.components.BackArrow
+import com.goal.goalapp.ui.components.DeleteDialog
 import com.goal.goalapp.ui.components.RoutineCard
 
 const val PADDING_PREVIOUS_SECTION = 40
@@ -73,15 +68,22 @@ fun CreateGoalScreen(
     navigateBack: () -> Unit,
     toCreateRoutineScreen: () -> Unit,
     toEditRoutineScreen: (Int) -> Unit,
+    toGoalOverviewScreen: () -> Unit,
     modifier: Modifier = Modifier,
     createGoalViewModel: CreateGoalViewModel = viewModel(factory = AppViewModelProvider.Factory),
 ){
     val createGoal by createGoalViewModel.createGoal.collectAsState()
     var showReachTargetValuePopup by remember { mutableStateOf(false) }
-    val createGoalState = createGoalViewModel.createGoalState.collectAsState()
+    val createGoalState = createGoalViewModel.createEditState.collectAsState()
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
-    if(goalId != null && createGoal.id != goalId){
-        createGoalViewModel.getGoalDetailsFromDb(goalId)
+
+
+    //is called when this composable gets initialized
+    LaunchedEffect(Unit) {
+        if(goalId != null && createGoalViewModel.createGoal.value.id == 0){
+            createGoalViewModel.getGoalDetailsFromDb(goalId)
+        }
     }
 
     /**
@@ -98,23 +100,45 @@ fun CreateGoalScreen(
         )
     }
 
+    /**
+     * Delete Dialog
+     */
+    if(showDeleteDialog){
+        DeleteDialog(
+            onDismiss = { showDeleteDialog = false },
+            onConfirm = {
+                createGoalViewModel.deleteGoal()
+                createGoalViewModel.resetCreateGoal()
+                toGoalOverviewScreen()
+                showDeleteDialog = false
+            }
+        )
+    }
+
     CreateGoalScreenBody(
         createGoal = createGoal,
         createGoalViewModel = createGoalViewModel,
-        navigateBack = navigateBack,
+        navigateBack = {
+            navigateBack()
+            createGoalViewModel.resetCreateGoal()
+                       },
         setShowPopup = { showReachTargetValuePopup = it },
         toCreateRoutineScreen = toCreateRoutineScreen,
         toEditRoutineScreen = {toEditRoutineScreen(it) },
-        createGoalState = createGoalState,
+        createEditState = createGoalState,
+        goalId = goalId,
+        deleteGoal = {
+            showDeleteDialog = true
+        },
         modifier = modifier
     )
 
     /**
      * If the goal was successfully created, navigate back to the goal overview screen
      */
-    if(createGoalState.value is CreateGoalState.Success){
-        createGoalViewModel.resetCreateGoal()
+    if(createGoalState.value is CreateEditState.Success){
         navigateBack()
+        createGoalViewModel.resetCreateGoal()
     }
 
 }
@@ -126,8 +150,10 @@ fun CreateGoalScreenBody(
     navigateBack: () -> Unit,
     setShowPopup: (Boolean) -> Unit,
     toCreateRoutineScreen: () -> Unit,
-    createGoalState: State<CreateGoalState>,
+    createEditState: State<CreateEditState>,
     toEditRoutineScreen: (Int) -> Unit,
+    goalId: Int?,
+    deleteGoal: () -> Unit,
     modifier: Modifier = Modifier,
 ){
     var isValid by remember { mutableStateOf(false) }
@@ -147,11 +173,28 @@ fun CreateGoalScreenBody(
          * Headline
          */
         item {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = PADDING_PREVIOUS_SECTION.dp)
+            ) {
             Text(
-                text = stringResource(R.string.new_goal),
-                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(bottom = 15.dp)
+                text = if(createGoal.id == 0)stringResource(R.string.new_goal)
+                else stringResource(R.string.edit_goal),
+                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold)
             )
+
+                if(goalId != null){
+                    //Delete Icon
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = stringResource(R.string.delete),
+                        modifier = Modifier
+                            .padding(start = 10.dp)
+                            .size(30.dp)
+                            .clickable { deleteGoal()}
+                    )
+                }
+            }
         }
 
         /**
@@ -311,7 +354,12 @@ fun CreateGoalScreenBody(
                 endDate = item.endDate,
                 targetValue = item.targetValue,
                 withProgressBar = false,
-                onClick = { /*TODO*/  }, //es gibt ja das Item noch nicht in der Datenbank, deswegen muss es ja von CreateGoalViewModel genommen werden
+                onClick = {
+                    if(item.id == 0){
+                        createGoalViewModel.toEditRoutineScreen(item)
+                    }
+                    toEditRoutineScreen(item.id)
+                },
                 modifier = Modifier.padding(top = PADDING_BETWEEN_ELEMENTS.dp)
             )
         }
@@ -321,7 +369,7 @@ fun CreateGoalScreenBody(
         item{
             Button(
                 onClick = {
-                    createGoalViewModel.saveCreateGoal()
+                    createGoalViewModel.saveOrEditGoal()
 
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -341,9 +389,9 @@ fun CreateGoalScreenBody(
          * Error by Saving Goal
          */
         item{
-            if(createGoalState.value is CreateGoalState.Error){
+            if(createEditState.value is CreateEditState.Error){
                 Text(
-                    text = (createGoalState.value as CreateGoalState.Error).message,
+                    text = (createEditState.value as CreateEditState.Error).message,
                     color = Color.Red
                 )
             }
@@ -354,7 +402,7 @@ fun CreateGoalScreenBody(
 fun checkCreateGoalValidity(createGoal: CreateGoal): Boolean {
     return createGoal.title != "" &&
             createGoal.deadline != null &&
-            (createGoal.completionCriteria?.completionType != null)
+            (createGoal.completionCriteria?.completionType != null && (if(createGoal.completionCriteria.completionType == CompletionType.ConnectRoutine) createGoal.routines.isNotEmpty() else true ))
 
 }
 

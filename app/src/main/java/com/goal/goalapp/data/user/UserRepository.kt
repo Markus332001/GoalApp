@@ -36,11 +36,6 @@ interface UserRepository {
     fun getUserWithGroupsByIdStream(userId: Long): Flow<UserWithGroups?>
 
     /**
-     * Retrieve an user with goals from the data source that match with the provided id
-     */
-    fun getUserWithGoalsByIdStream(userId: Long): Flow<UserWithGoals?>
-
-    /**
      * Retrieve an userSession from the data source that match with the provided user id
      */
     fun getUserWithSessionByIdStream(sessionId: Int): Flow<UserWithSession?>

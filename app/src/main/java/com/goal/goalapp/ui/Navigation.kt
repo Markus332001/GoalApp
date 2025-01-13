@@ -25,6 +25,7 @@ import com.goal.goalapp.R
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.goal.goalapp.ui.calender.CalendarScreen
 import com.goal.goalapp.ui.goal.CreateGoalScreen
 import com.goal.goalapp.ui.goal.CreateGoalViewModel
 import com.goal.goalapp.ui.goal.CreateRoutine
@@ -74,7 +75,9 @@ enum class NavigationScreens (@StringRes val title: Int){
     CreateGoalScreen(title = R.string.create_goal),
     CreateRoutineScreen(title = R.string.create_routine),
     GoalDetailsScreen(title = R.string.goal_details),
-    RoutineDetailsScreen(title = R.string.routine_details);
+    RoutineDetailsScreen(title = R.string.routine_details),
+    EditGoalScreen(title = R.string.edit_goal),
+    EditRoutineScreen(title = R.string.edit_routine);
 
     // function for dynamic routes
     fun withArgs(vararg args: String): String {
@@ -164,20 +167,58 @@ fun Navigation(
                 navigateBack = { navController.navigateUp() },
                 toCreateRoutineScreen = { navController.navigate(NavigationScreens.CreateRoutineScreen.name) },
                 toEditRoutineScreen = {
-                    /*TODO*/
+                   navController.navigate(NavigationScreens.EditRoutineScreen.withArgs(it.toString()))
                 },
                 createGoalViewModel = createGoalViewModel,
-                goalId = TODO(),
+                goalId = null,
+                toGoalOverviewScreen = {
+                    navController.navigate(NavigationScreens.GoalsMain.name)
+                }
             )
         }
         composable(route = NavigationScreens.CreateRoutineScreen.name) {
 
             CreateRoutineScreen(
+                routineId = null,
                 navigateBack = { navController.navigateUp() },
-                toCreateGoalScreen = { navController.navigate(NavigationScreens.CreateGoalScreen.name) },
+                toGoalDetailsScreen = { navController.navigate(NavigationScreens.GoalDetailsScreen.withArgs(it.toString())) },
                 createGoalViewModel = createGoalViewModel
             )
         }
+        composable(
+            route ="${NavigationScreens.EditGoalScreen.name}/{goalId}",
+            arguments = listOf(navArgument("goalId") {
+                type = NavType.IntType
+            }) ){backStackEntry ->
+            val goalId = backStackEntry.arguments?.getInt("goalId")
+            CreateGoalScreen(
+                goalId = goalId,
+                navigateBack = { navController.navigateUp() },
+                toCreateRoutineScreen = { navController.navigate(NavigationScreens.CreateRoutineScreen.name) },
+                toEditRoutineScreen = {
+                    navController.navigate(NavigationScreens.EditRoutineScreen.withArgs(it.toString()))
+                },
+               toGoalOverviewScreen = {
+                   navController.navigate(NavigationScreens.GoalsMain.name)
+               },
+                createGoalViewModel = createGoalViewModel
+            )
+        }
+        composable(
+            route ="${NavigationScreens.EditRoutineScreen.name}/{routineId}",
+            arguments = listOf(navArgument("routineId") {
+                type = NavType.IntType
+            })) {  backStackEntry ->
+            val routineId = backStackEntry.arguments?.getInt("routineId")
+            CreateRoutineScreen(
+                routineId = routineId,
+                navigateBack = { navController.navigateUp() },
+                toGoalDetailsScreen = { navController.navigate(NavigationScreens.GoalDetailsScreen.withArgs(it.toString())) },
+                createGoalViewModel = createGoalViewModel,
+            )
+
+        }
+
         composable(
             route ="${NavigationScreens.GoalDetailsScreen.name}/{goalId}",
             arguments = listOf(navArgument("goalId") {
@@ -192,7 +233,10 @@ fun Navigation(
                     navController.navigate(NavigationScreens.RoutineDetailsScreen.withArgs(routineId.toString()))
                 },
                 toEditGoalScreen = { goalId ->
-                    /*TODO*/
+                    navController.navigate(NavigationScreens.EditGoalScreen.withArgs(goalId.toString()))
+                },
+                toGoalOverviewScreen = {
+                    navController.navigate(NavigationScreens.GoalsMain.name)
                 }
             )
         }
@@ -206,14 +250,21 @@ fun Navigation(
             val routineId = backStackEntry.arguments?.getInt("routineId")
             RoutineDetailsScreen(
                 routineId = routineId,
-                navigateBack = { navController.navigateUp() }
+                navigateBack = { navController.navigateUp() },
+                toEditRoutineScreen = {routineId ->
+                    navController.navigate(NavigationScreens.EditRoutineScreen.withArgs(routineId.toString()))
+                }
             )
         }
 
         composable(route = NavigationScreens.CalenderMain.name) {
             BottomNavigation(
                 selectedScreen = NavigationScreens.CalenderMain,
-                screen = { /*TODO*/},
+                screen = {
+                    CalendarScreen(
+                        modifier = Modifier.padding(bottom = it.calculateBottomPadding())
+                    )
+                },
                 navController = navController
             )
         }

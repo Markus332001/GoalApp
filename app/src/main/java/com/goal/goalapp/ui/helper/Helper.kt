@@ -10,10 +10,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.goal.goalapp.R
 import com.goal.goalapp.data.Frequency
+import com.goal.goalapp.data.goal.RoutineCalendarDays
+import com.goal.goalapp.data.goal.RoutineWithCalendarDays
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalAdjusters
 
 data class ColorScheme(
     val fontColor: Color,
@@ -22,10 +25,15 @@ data class ColorScheme(
 
 data class CalendarDisplay(
     val date: LocalDate,
-    val colorDaysBackgroundColorType: CalendarDaysBackgroundColorType? = null,
-    val isVisible: Boolean,
-    val isToday: Boolean? = null,
-    val greenPercentage: Float? = null
+    var colorDaysBackgroundColorType: CalendarDaysBackgroundColorType? = null,
+    var routineCalendarDays: MutableList<RoutineCalendarDayWithTitle> = mutableListOf(),
+    val isVisible: Boolean = true,
+    var greenPercentage: Float? = null
+)
+
+data class RoutineCalendarDayWithTitle(
+    val routineCalendarDays: RoutineCalendarDays,
+    val title: String
 )
 
 /**
@@ -37,6 +45,10 @@ fun getDaysOfWeekShort(daysOfWeek: List<DayOfWeek>): List<String>{
         daysOfWeekShort.add(getDayShortForm(day))
     }
     return daysOfWeekShort
+}
+
+fun getFirstDayOfWeek(date: LocalDate): LocalDate {
+    return date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 }
 
 fun getDayShortForm(day: DayOfWeek): String{
@@ -109,7 +121,7 @@ fun getFrequencyString(frequency: Frequency, intervalDays: Int? = null, daysOfWe
                 getDaysOfWeekShort(daysOfWeek ?: emptyList())
                     .joinToString(", ") { it }
         Frequency.IntervalDays -> stringResource(R.string.every) + " " + intervalDays.toString() + " " + stringResource(
-            R.string.time
+            R.string.day
         )
     }
 }
@@ -155,36 +167,12 @@ fun getColorFromCalendarDaysBackgroundColorType(calendarDaysBackgroundColorType:
             fontColor = colorResource(R.color.button_font),
             backgroundColor = Color.White
         )
+        // returns the same color as all tasks completed. It also has to get all tasks not completed
         CalendarDaysBackgroundColorType.NotAllTasksCompleted -> ColorScheme(
             fontColor = Color.White,
             backgroundColor = colorResource(R.color.positive)
         )
     }
-}
-
-/**
- * Filters the dates, which are in a specific month and year
- */
-fun filterDatesByMonthAndYear(dates: List<LocalDate>, year: Int, month: Int): List<LocalDate> {
-    return dates.filter { it.year == year && it.monthValue == month }
-}
-
-/**
- * Helper function to get the dates of a specific month
- */
-fun getDatesInMonth(year: Int, month: Int): List<LocalDate> {
-    val yearMonth = YearMonth.of(year, month) // Erstellt ein Objekt für Jahr und Monat
-    return (1..yearMonth.lengthOfMonth()).map { day ->
-        LocalDate.of(year, month, day)
-    }
-}
-
-/**
- * Helper function to get the dates of a specific week
- */
-fun getWeekDates(date: LocalDate): List<LocalDate> {
-    val startOfWeek = date.with(DayOfWeek.MONDAY) // the Monday of the week
-    return (0..6).map { startOfWeek.plusDays(it.toLong()) }
 }
 
 /**
@@ -211,7 +199,7 @@ fun getMonthString(month: Int): String{
 
 @Preview
 @Composable
-fun getMonthsDaysForCalendarPreview(){
+fun GetMonthsDaysForCalendarPreview(){
     val monthsDaysForCalendar = getMonthDaysForCalendar(4, 2023)
     Column{
         for (day in monthsDaysForCalendar) {

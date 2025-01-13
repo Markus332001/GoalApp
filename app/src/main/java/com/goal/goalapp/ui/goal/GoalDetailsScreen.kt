@@ -62,6 +62,7 @@ fun GoalDetailsScreen(
     navigateBack: () -> Unit,
     toRoutineDetailsScreen: (Int) -> Unit,
     toEditGoalScreen: (Int) -> Unit,
+    toGoalOverviewScreen: () -> Unit,
     modifier: Modifier = Modifier,
     goalDetailsViewModel: GoalDetailsViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ){
@@ -73,7 +74,7 @@ fun GoalDetailsScreen(
 
     if(goalDetailsUiState.goalId != 0){
         GoalDetailsScreenBody(
-            navigateBack = navigateBack,
+            navigateBack = toGoalOverviewScreen,
             goalDetailsUiState = goalDetailsUiState,
             goalDetailsViewModel = goalDetailsViewModel,
             toRoutineDetailsScreen = toRoutineDetailsScreen,

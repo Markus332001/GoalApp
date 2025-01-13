@@ -26,6 +26,11 @@ interface GoalRepository {
     suspend fun insertRoutines(routines: List<Routine>)
 
     /**
+     * Insert routine with calendar days in the data source
+     */
+    suspend fun insertRoutineWithCalendarDays(routineWithCalendarDays: RoutineWithCalendarDays, goalId: Int): Long
+
+    /**
      * Insert routine in the data source
      */
     suspend fun insertRoutine(routine: Routine): Long
@@ -49,17 +54,27 @@ interface GoalRepository {
     /**
      * Update goal with details in the data source
      */
-    suspend fun updateGoalWithDetails(goalWithDetails: GoalWithDetails)
+    suspend fun updateGoalWithDetails(goalWithDetails: GoalWithDetails): Int
+
+    /**
+     * Update routine calendar days in the data source
+     */
+    suspend fun updateRoutineCalendarDay(routineCalendarDay: RoutineCalendarDays)
 
     /**
      * Update completion criterion in the data source
      */
-    suspend fun updateCompletionCriterion(completionCriterion: CompletionCriterion)
+    suspend fun updateCompletionCriterion(completionCriterion: CompletionCriterion): Int
 
     /**
      * Update routines in the data source
      */
-    suspend fun updateRoutine(routine: Routine)
+    suspend fun updateRoutine(routine: Routine): Int
+
+    /**
+     * Update routine with calendar days in the data source
+     */
+    suspend fun updateRoutineWithCalendarDays(routineWithCalendarDays: RoutineWithCalendarDays): Int
 
     /**
      * Update routines in the data source
@@ -74,7 +89,17 @@ interface GoalRepository {
     /**
      * Delete goal from the data source
      */
-    suspend fun deleteGoal(goal: Goal)
+    suspend fun deleteGoalById(goalId: Int)
+
+    /**
+     * Delete routine
+     */
+    suspend fun deleteRoutineById(routineId: Int)
+
+    /**
+     * Delete routine calendar days by Id
+     */
+    suspend fun deleteRoutineCalendarDaysByIds(routineCalendarDaysIds: List<Int>)
 
     /**
      * Retrieve an goal from the data source that match with the provided id
@@ -100,5 +125,30 @@ interface GoalRepository {
      * Retrieve an routine with calendar days from the data source that match with the provided id
      */
     fun getRoutineWithCalendarDaysByIdStream(routineId: Int): Flow<RoutineWithCalendarDays?>
+
+    /**
+     * Retrieve all calendar days by the provided routine id
+     */
+    suspend fun getRoutineCalendarDaysByRoutineId(routineId: Int): List<RoutineCalendarDays>
+
+    /**
+     * Retrieve all routines by the provided goal id
+     */
+    suspend fun getRoutinesByGoalId(goalId: Int): List<Routine>
+
+    /**
+     * Retrieve all routines with calendar days by the provided goal id
+     */
+    fun getRoutinesWithCalendarDaysByGoalIdStream(goalId: Int): Flow<List<RoutineWithCalendarDays>>
+
+    /**
+     * Retrieve all routine calendar days by the provided user id
+     */
+    fun getRoutineWithCalendarDaysByUserIdStream(userId: Int): Flow<List<RoutineWithCalendarDays>>
+
+    /**
+     * Retrieve all goals by the provided user id
+     */
+    fun getGoalsByUserIdStream(userId: Int): Flow<List<Goal>>
 
 }
