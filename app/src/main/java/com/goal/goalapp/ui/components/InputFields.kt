@@ -15,10 +15,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.DatePicker
@@ -45,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
@@ -226,6 +230,41 @@ fun NotesInput(
     )
 }
 
+@Composable
+fun SearchBar(
+    searchInput: String,
+    onSearchInputChanged: (String) -> Unit,
+    label: String,
+    height: Int = 64,
+    modifier: Modifier = Modifier
+){
+    OutlinedTextField(
+        value = searchInput,
+        onValueChange = onSearchInputChanged,
+        label = { Text(label) },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = label
+            )
+        },
+        trailingIcon = {
+            if(searchInput.isNotEmpty()){
+                IconButton(onClick = { onSearchInputChanged("") }) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = label
+                    )
+                }
+            }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(20.dp),
+        modifier = modifier
+            .height(height.dp),
+    )
+}
+
 
 
 
@@ -269,6 +308,17 @@ fun NotesInputPreview() {
         noteText = noteText.value,
         onNoteChange = { noteText.value = it },
         label = "Notes"
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SearchBarPreview() {
+    val searchInput = remember { mutableStateOf("sadfs") }
+    SearchBar(
+        searchInput = searchInput.value,
+        onSearchInputChanged = { searchInput.value = it },
+        label = "Search"
     )
 }
 

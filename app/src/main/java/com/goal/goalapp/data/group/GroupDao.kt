@@ -21,11 +21,14 @@ interface GroupDao {
     @Delete
     suspend fun deleteGroup(group: Group)
 
+    @Query("DELETE FROM `Group` WHERE id = :groupId")
+    suspend fun deleteGroupById(groupId: Int)
+
     @Query("SELECT * FROM `group` WHERE id = :groupId")
-    fun getGroupById(groupId: Long): Flow<Group?>
+    fun getGroupById(groupId: Int): Flow<Group?>
 
     @Query("SELECT * FROM `group`")
-    fun getAllGroups(): Flow<List<Group>>
+    fun getAllGroupsStream(): Flow<List<Group>>
 
     @Query("""
         SELECT * FROM `Group`
@@ -33,10 +36,25 @@ interface GroupDao {
             SELECT groupId FROM UserGroupCrossRef WHERE userId = :userId
         )
     """)
-    fun getGroupsNotContainingUser(userId: Long): Flow<List<Group>>
+    fun getGroupsWithCategoriesNotContainingUserStream(userId: Int): Flow<List<GroupWithCategories>>
 
     @Transaction
     @Query("SELECT * FROM `group` WHERE id = :groupId")
-    fun getGroupWithDetailsById(groupId: Long): Flow<GroupWithDetails?>
+    fun getGroupWithDetailsByIdStream(groupId: Int): Flow<GroupWithDetails?>
+
+    @Query("""
+            SELECT * FROM `Group`
+            WHERE id IN (
+        SELECT groupId FROM UserGroupCrossRef WHERE userId = :userId
+    )
+        """)
+    fun getGroupsWithCategoriesByUserIdStream(userId: Int): Flow<List<GroupWithCategories>>
+
+    @Query("SELECT * FROM GroupCategory")
+    fun getAllGroupCategoriesStream(): Flow<List<GroupCategory>>
+
+    @Transaction
+    @Query("SELECT * FROM `Group` WHERE id = :groupId")
+    suspend fun getGroupWithCategoriesById(groupId: Int): GroupWithCategories?
 
 }

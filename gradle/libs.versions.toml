@@ -17,6 +17,7 @@ roomCommon = "2.6.1"
 navigationRuntimeKtx = "2.8.5"
 navigationCompose = "2.8.5"
 runtimeLivedata = "1.7.6"
+viewpager2 = "1.1.0"
 
 [libraries]
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
@@ -27,6 +28,7 @@ androidx-material-icons-extended = { module = "androidx.compose.material:materia
 androidx-room-common = { module = "androidx.room:room-common", version.ref = "roomCommon" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomCommon" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomCommon" }
+androidx-viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
 bcrypt = { module = "at.favre.lib:bcrypt", version.ref = "bcrypt" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

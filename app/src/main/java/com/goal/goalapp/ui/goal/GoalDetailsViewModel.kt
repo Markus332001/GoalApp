@@ -18,8 +18,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 class GoalDetailsViewModel(
-    private val goalRepository: GoalRepository,
-    private val userSessionStorage: UserSessionStorage
+    private val goalRepository: GoalRepository
 ): ViewModel() {
 
     private val _goalDetailsUiState = MutableStateFlow(GoalDetailsUiState())

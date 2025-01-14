@@ -17,6 +17,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -58,6 +60,13 @@ data class CreateRoutine(
     val calendarDays: List<RoutineCalendarDays> = emptyList()
 )
 
+sealed class CreateEditState {
+    data object Initial : CreateEditState() // initial state
+    data object Loading : CreateEditState() // when the login process is loading
+    data object Success : CreateEditState()
+    data class Error(val message: String) : CreateEditState()
+}
+
 class CreateGoalViewModel(
     private val goalRepository: GoalRepository,
     private val userSessionStorage: UserSessionStorage
@@ -74,64 +83,63 @@ class CreateGoalViewModel(
 
     fun getGoalDetailsFromDb(goalId: Int){
         viewModelScope.launch {
-            goalRepository.getGoalWithDetailsByIdStream(goalId).collect{
-                if(it == null) return@collect
-                _createGoal.value = CreateGoal(
-                    id = it.goal.id,
-                    title = it.goal.title,
-                    deadline = it.goal.deadline,
-                    notes = it.goal.notes,
-                    userId = it.goal.userId,
-                    progress = it.goal.progress,
-                    completionCriteria = CreateCompletionCriterion(
-                        id = it.completionCriteria.id,
-                        goalId = it.completionCriteria.goalId,
-                        completionType = it.completionCriteria.completionType,
-                        targetValue = it.completionCriteria.targetValue,
-                        unit = it.completionCriteria.unit,
-                        currentValue = it.completionCriteria.currentValue?: 0,
-                    ),
-                    routines = it.routines.map { r ->
-                        CreateRoutine(
-                            id = r.routine.id,
-                            goalId = r.routine.goalId,
-                            title = r.routine.title,
-                            frequency = r.routine.frequency,
-                            daysOfWeek = r.routine.daysOfWeek,
-                            intervalDays = r.routine.intervalDays,
-                            startDate = r.routine.startDate,
-                            endDate = r.routine.endDate,
-                            targetValue = r.routine.targetValue,
-                            currentValue = r.routine.currentValue?: 0,
-                            progress = r.routine.progress,
-                            calendarDays = r.calendarDays,
-                        )
-                    }
+            val goal = goalRepository.getGoalWithDetailsByIdStream(goalId).first() ?: return@launch
 
-                )
-            }
+            _createGoal.value = CreateGoal(
+                id = goal.goal.id,
+                title = goal.goal.title,
+                deadline = goal.goal.deadline,
+                notes = goal.goal.notes,
+                userId = goal.goal.userId,
+                progress = goal.goal.progress,
+                completionCriteria = CreateCompletionCriterion(
+                    id = goal.completionCriteria.id,
+                    goalId = goal.completionCriteria.goalId,
+                    completionType = goal.completionCriteria.completionType,
+                    targetValue = goal.completionCriteria.targetValue,
+                    unit = goal.completionCriteria.unit,
+                    currentValue = goal.completionCriteria.currentValue?: 0,
+                ),
+                routines = goal.routines.map { r ->
+                    CreateRoutine(
+                        id = r.routine.id,
+                        goalId = r.routine.goalId,
+                        title = r.routine.title,
+                        frequency = r.routine.frequency,
+                        daysOfWeek = r.routine.daysOfWeek,
+                        intervalDays = r.routine.intervalDays,
+                        startDate = r.routine.startDate,
+                        endDate = r.routine.endDate,
+                        targetValue = r.routine.targetValue,
+                        currentValue = r.routine.currentValue?: 0,
+                        progress = r.routine.progress,
+                        calendarDays = r.calendarDays,
+                    )
+                }
+
+            )
+
         }
     }
 
     fun getRoutineDetailsFromDb(routineId: Int){
         viewModelScope.launch {
-            goalRepository.getRoutineWithCalendarDaysByIdStream(routineId).collect{
-                if(it == null) return@collect
-                _routine.value = CreateRoutine(
-                    id = it.routine.id,
-                    goalId = it.routine.goalId,
-                    title = it.routine.title,
-                    frequency = it.routine.frequency,
-                    daysOfWeek = it.routine.daysOfWeek,
-                    intervalDays = it.routine.intervalDays,
-                    startDate = it.routine.startDate,
-                    endDate = it.routine.endDate,
-                    targetValue = it.routine.targetValue,
-                    currentValue = it.routine.currentValue?: 0,
-                    progress = it.routine.progress,
-                    calendarDays = it.calendarDays
-                )
-            }
+            //collects the routine, but not as flow
+            val routine = goalRepository.getRoutineWithCalendarDaysByIdStream(routineId).first()?: return@launch
+            _routine.value = CreateRoutine(
+                id = routine.routine.id,
+                goalId = routine.routine.goalId,
+                title = routine.routine.title,
+                frequency = routine.routine.frequency,
+                daysOfWeek = routine.routine.daysOfWeek,
+                intervalDays = routine.routine.intervalDays,
+                startDate = routine.routine.startDate,
+                endDate = routine.routine.endDate,
+                targetValue = routine.routine.targetValue,
+                currentValue = routine.routine.currentValue?: 0,
+                progress = routine.routine.progress,
+                calendarDays = routine.calendarDays
+            )
         }
     }
 
@@ -435,10 +443,10 @@ class CreateGoalViewModel(
     }
 
     fun addRoutine() {
-        //removes the old routine and adds the new one
+        //add all routines except the old routine and adds the new one
         _createGoal.value = _createGoal.value.copy(
             routines = _createGoal.value.routines.filter {
-                it.idEditNewRoutine == _routine.value.idEditNewRoutine
+                it.idEditNewRoutine != _routine.value.idEditNewRoutine
             }.
             toMutableList().apply {
                 add(_routine.value.copy())
@@ -480,11 +488,6 @@ class CreateGoalViewModel(
 
 }
 
-sealed class CreateEditState {
-    data object Initial : CreateEditState() // initial state
-    data object Loading : CreateEditState() // when the login process is loading
-    data object Success : CreateEditState()
-    data class Error(val message: String) : CreateEditState()
-}
+
 
 

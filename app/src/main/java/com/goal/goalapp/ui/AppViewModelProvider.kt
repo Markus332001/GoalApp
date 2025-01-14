@@ -9,6 +9,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.goal.goalapp.GoalApplication
 import com.goal.goalapp.ui.calender.CalendarViewModel
+import com.goal.goalapp.ui.chat.CreateEditGroupViewModel
+import com.goal.goalapp.ui.chat.GroupViewModel
 import com.goal.goalapp.ui.goal.CreateGoalViewModel
 import com.goal.goalapp.ui.goal.GoalDetailsViewModel
 import com.goal.goalapp.ui.goal.GoalOverviewViewModel
@@ -56,8 +58,7 @@ object AppViewModelProvider{
 
         initializer {
             GoalDetailsViewModel(
-                goalApplication().container.goalRepository,
-                goalApplication().container.userSessionStorage
+                goalApplication().container.goalRepository
             )
         }
 
@@ -74,6 +75,19 @@ object AppViewModelProvider{
             )
         }
 
+        initializer {
+            GroupViewModel(
+                goalApplication().container.groupRepository,
+                goalApplication().container.userSessionStorage
+            )
+        }
+
+        initializer {
+            CreateEditGroupViewModel(
+                goalApplication().container.groupRepository,
+                goalApplication().container.userSessionStorage
+            )
+        }
     }
 }
 

@@ -47,6 +47,9 @@ class CalendarViewModel(
             initialValue = emptyList()
         )
 
+    private val _getState = MutableStateFlow<GetState>(GetState.Initial)
+    val getState: StateFlow<GetState> = _getState
+
     /**
      * transforms all calendar days to a list of days with routine calendar days. One day can have multiple calendar days
      */
@@ -110,6 +113,8 @@ class CalendarViewModel(
 
 
         }
+
+        _getState.value = GetState.Success
 
         return newDayWithRoutineCalendarDays
     }
@@ -216,4 +221,11 @@ class CalendarViewModel(
 
         return weekDays
     }
+}
+
+sealed class GetState {
+    data object Initial : GetState()
+    data object Loading : GetState()
+    data object Success : GetState()
+    data class Error(val message: String) : GetState()
 }

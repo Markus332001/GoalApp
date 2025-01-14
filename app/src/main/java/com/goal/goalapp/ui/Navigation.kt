@@ -26,6 +26,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.goal.goalapp.ui.calender.CalendarScreen
+import com.goal.goalapp.ui.chat.GroupScreen
 import com.goal.goalapp.ui.goal.CreateGoalScreen
 import com.goal.goalapp.ui.goal.CreateGoalViewModel
 import com.goal.goalapp.ui.goal.CreateRoutine
@@ -271,7 +272,11 @@ fun Navigation(
         composable(route = NavigationScreens.ChatsMain.name) {
             BottomNavigation(
                 selectedScreen = NavigationScreens.ChatsMain,
-                screen = { /*TODO*/},
+                screen = {
+                    GroupScreen(
+                        modifier = Modifier.padding(bottom = it.calculateBottomPadding())
+                    )
+                },
                 navController = navController
 
             )

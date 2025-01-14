@@ -9,12 +9,19 @@ class OfflineGroupRepository(private val groupDao: GroupDao) : GroupRepository {
     override suspend fun update(group: Group) = groupDao.update(group)
 
     override suspend fun deleteGroup(group: Group) = groupDao.deleteGroup(group)
+    override suspend fun deleteGroupById(groupId: Int) = groupDao.deleteGroupById(groupId)
 
-    override fun getGroupById(groupId: Long): Flow<Group?> = groupDao.getGroupById(groupId)
+    override fun getGroupByIdStream(groupId: Int): Flow<Group?> = groupDao.getGroupById(groupId)
 
-    override fun getAllGroups(): Flow<List<Group>> = groupDao.getAllGroups()
+    override fun getAllGroupsStream(): Flow<List<Group>> = groupDao.getAllGroupsStream()
 
-    override fun getGroupsNotContainingUser(userId: Long): Flow<List<Group>> = groupDao.getGroupsNotContainingUser(userId)
+    override fun getGroupsWithCategoriesNotContainingUserStream(userId: Int): Flow<List<GroupWithCategories>> = groupDao.getGroupsWithCategoriesNotContainingUserStream(userId)
 
-    override fun getGroupWithDetailsById(groupId: Long): Flow<GroupWithDetails?> = groupDao.getGroupWithDetailsById(groupId)
+    override fun getGroupsWithCategoriesByUserIdStream(userId: Int): Flow<List<GroupWithCategories>> = groupDao.getGroupsWithCategoriesByUserIdStream(userId)
+
+    override fun getGroupWithDetailsByIdStream(groupId: Int): Flow<GroupWithDetails?> = groupDao.getGroupWithDetailsByIdStream(groupId)
+
+    override fun getAllGroupCategoriesStream(): Flow<List<GroupCategory>> = groupDao.getAllGroupCategoriesStream()
+
+    override suspend fun getGroupWithCategoriesById(groupId: Int): GroupWithCategories? = groupDao.getGroupWithCategoriesById(groupId)
 }

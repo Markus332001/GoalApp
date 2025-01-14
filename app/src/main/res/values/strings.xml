@@ -77,4 +77,13 @@
     <string name="routine_details">Routine Details</string>
     <string name="edit_goal">Bearbeite Ziel</string>
     <string name="edit_routine">Bearbeite Routine</string>
+    <string name="my_groups">Meine Gruppen</string>
+    <string name="join_group">Gruppen beitreten</string>
+    <string name="search_groups">Suche Gruppen</string>
+    <string name="add_group">Gruppe hinzufügen</string>
+    <string name="filter_groups">Filter Gruppen</string>
+    <string name="new_group">Neue Gruppe</string>
+    <string name="edit_group">Bearbeite Gruppe</string>
+    <string name="reset">Zurücksetzten</string>
+    <string name="search_categories">Suche Kategorien</string>
 </resources>

@@ -40,7 +40,7 @@ import com.goal.goalapp.data.user_session.UserSessionDao
     Comment::class,
     UserGroupCrossRef::class,
     GroupGroupCategoryCrossRef::class
-                     ], version = 9, exportSchema = false)
+                     ], version = 10, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class GoalDatabase : RoomDatabase(){
 

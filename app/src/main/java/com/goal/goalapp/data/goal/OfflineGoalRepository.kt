@@ -75,9 +75,9 @@ class OfflineGoalRepository(private val goalDao: GoalDao) : GoalRepository  {
         val goalRoutinesDb: List<Routine> = getRoutinesByGoalId(goalWithDetails.goal.id)
 
         //deletes all routines from db which arent anymore in Update
-        val toDeleteRoutine: List<Routine> = goalRoutinesDb.filter{
-            goalWithDetails.routines.any{r ->
-                r.routine.id != it.id
+        val toDeleteRoutine: List<Routine> = goalRoutinesDb.filter{dbRoutine ->
+            goalWithDetails.routines.none { updatedRoutine ->
+                updatedRoutine.routine.id == dbRoutine.id
             }
         }
         for(routine in toDeleteRoutine){
@@ -88,10 +88,10 @@ class OfflineGoalRepository(private val goalDao: GoalDao) : GoalRepository  {
         //when no routines are in the db all routines have to be inserted
         val toInsertRoutine: List<RoutineWithCalendarDays> = if(goalRoutinesDb.size == 0)
             goalWithDetails.routines else
-            goalWithDetails.routines.filter{
-            goalRoutinesDb.any{r ->
-                r.id != it.routine.id
-            }
+            goalWithDetails.routines.filter{updatedRoutine ->
+                goalRoutinesDb.none { dbRoutine ->
+                    dbRoutine.id == updatedRoutine.routine.id
+                }
         }
         for(routine in toInsertRoutine){
             insertRoutineWithCalendarDays(routine, goalWithDetails.goal.id)

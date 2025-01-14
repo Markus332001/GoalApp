@@ -77,6 +77,7 @@ fun CalendarScreen(
     val currentVisibleDayTasks = remember { mutableStateOf<CalendarDisplay?>(null) }
     val weekView = remember { mutableStateOf(true) }
     val scrollState = rememberScrollState()
+    val getState by calendarViewModel.getState.collectAsState()
 
     LaunchedEffect(dayWithCalendarDays){
         if(dayWithCalendarDays.isNotEmpty()){
@@ -104,148 +105,150 @@ fun CalendarScreen(
             style = MaterialTheme.typography.headlineLarge,
             modifier = Modifier.padding(bottom = 30.dp)
         )
+        if(getState is GetState.Success){
 
-        Row(
-            horizontalArrangement = Arrangement.End,
-            modifier = Modifier
-                .wrapContentHeight()
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp, bottom = 20.dp)
-        ){
-            /**
-             * Change Week Month View Button
-             */
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(40.dp)
-                    .shadow(
-                        elevation = 5.dp,
-                        shape = RoundedCornerShape(5.dp)
-                    )
-                    .background(Color.White)
-                    .clip(RoundedCornerShape(5.dp))
-                    .clickable {
-                        weekView.value = !weekView.value
-                        changeNowToSpecificDay.value = true
-                    }
-            ){
-                Text(
-                    text = if(weekView.value) "Mo" else "Wo",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-            }
-
-            /**
-             * Today Button
-             */
-            val colorSchemeToday = getColorFromCalendarDaysBackgroundColorType(CalendarDaysBackgroundColorType.Today)
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .padding(start = 10.dp)
-                    .size(40.dp)
-                    .shadow(
-                        elevation = 5.dp,
-                        shape = RoundedCornerShape(5.dp)
-                    )
-                    .background(colorSchemeToday.backgroundColor)
-                    .clip(RoundedCornerShape(5.dp))
-                    .clickable {
-                        changeNowToSpecificDay.value = true
-                        currentVisibleDay.value = LocalDate.now()
-                    }
-            ){
-                Text(
-                    text = LocalDate.now().dayOfMonth.toString(),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = colorSchemeToday.fontColor
-                )
-            }
-        }
-
-        if(weekView.value){
-            /**
-             * The Week View
-             */
-            WeekPager(
-                generateWeekDays = { calendarViewModel.generateWeekDays(it, dayWithCalendarDays) },
-                onClickDay = {
-                    currentVisibleDayTasks.value = calendarViewModel.getCurrentVisibleDay(it.date)
-                },
-                dayWithCalendarDays = dayWithCalendarDays,
-                initalDay = initalDay.value,
-                changeToSpecificDay = currentVisibleDay.value,
-                calculateWeekPage = { date, startPage -> calendarViewModel.calculateWeekPage(date, startPage) },
-                onPageChanged = {
-                    currentVisibleDay.value = it
-                },
-                changeNowToSpecificDay = changeNowToSpecificDay.value,
-                resetChangeNowToSpecificDay = { changeNowToSpecificDay.value = false },
-                currentVisibleDayTask = currentVisibleDayTasks.value,
-                modifier = Modifier
-            )
-        }else{
-            /**
-             * Month View
-             */
-            MonthPager(
-                generateMonthStructure = { calendarViewModel.generateMonthDaysStructure(it, dayWithCalendarDays) },
-                onClickDay = {
-                    currentVisibleDayTasks.value = calendarViewModel.getCurrentVisibleDay(it.date)
-                },
-                dayWithCalendarDays = dayWithCalendarDays,
-                initalDay = initalDay.value,
-                resetChangeNowToSpecificDay = { changeNowToSpecificDay.value = false },
-                changeNowToSpecificDay = changeNowToSpecificDay.value,
-                changeToSpecificDay = currentVisibleDay.value,
-                calculateMonthPage = { date, startPage -> calendarViewModel.calculateMonthPage(date, startPage) },
-                modifier = Modifier,
-                currentVisibleDayTask = currentVisibleDayTasks.value,
-                onPageChanged = {
-                    currentVisibleDay.value = it
-                },
-            )
-        }
-
-
-        if(currentVisibleDayTasks.value != null){
-            /**
-             * Progressbar with completed tasks count
-             */
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.End,
                 modifier = Modifier
+                    .wrapContentHeight()
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 30.dp, bottom = 10.dp)
+                    .padding(start = 16.dp, end = 16.dp, bottom = 20.dp)
             ){
-                val completedTasks = currentVisibleDayTasks.value!!.routineCalendarDays.count{it.routineCalendarDays.isCompleted}
-                val totalTasks = currentVisibleDayTasks.value!!.routineCalendarDays.size
+                /**
+                 * Change Week Month View Button
+                 */
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .shadow(
+                            elevation = 5.dp,
+                            shape = RoundedCornerShape(5.dp)
+                        )
+                        .background(Color.White)
+                        .clip(RoundedCornerShape(5.dp))
+                        .clickable {
+                            weekView.value = !weekView.value
+                            changeNowToSpecificDay.value = true
+                        }
+                ){
+                    Text(
+                        text = if(weekView.value) "Mo" else "Wo",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                }
 
-                ProgressBar(
-                    progress = if(totalTasks == 0) 0f else completedTasks.toFloat() / totalTasks.toFloat(),
-                    modifier = Modifier.fillMaxWidth().padding(end = 10.dp).height(40.dp).weight(1f)
+                /**
+                 * Today Button
+                 */
+                val colorSchemeToday = getColorFromCalendarDaysBackgroundColorType(CalendarDaysBackgroundColorType.Today)
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .padding(start = 10.dp)
+                        .size(40.dp)
+                        .shadow(
+                            elevation = 5.dp,
+                            shape = RoundedCornerShape(5.dp)
+                        )
+                        .background(colorSchemeToday.backgroundColor)
+                        .clip(RoundedCornerShape(5.dp))
+                        .clickable {
+                            changeNowToSpecificDay.value = true
+                            currentVisibleDay.value = LocalDate.now()
+                        }
+                ){
+                    Text(
+                        text = LocalDate.now().dayOfMonth.toString(),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = colorSchemeToday.fontColor
+                    )
+                }
+            }
+
+            if(weekView.value){
+                /**
+                 * The Week View
+                 */
+                WeekPager(
+                    generateWeekDays = { calendarViewModel.generateWeekDays(it, dayWithCalendarDays) },
+                    onClickDay = {
+                        currentVisibleDayTasks.value = calendarViewModel.getCurrentVisibleDay(it.date)
+                    },
+                    dayWithCalendarDays = dayWithCalendarDays,
+                    initalDay = initalDay.value,
+                    changeToSpecificDay = currentVisibleDay.value,
+                    calculateWeekPage = { date, startPage -> calendarViewModel.calculateWeekPage(date, startPage) },
+                    onPageChanged = {
+                        currentVisibleDay.value = it
+                    },
+                    changeNowToSpecificDay = changeNowToSpecificDay.value,
+                    resetChangeNowToSpecificDay = { changeNowToSpecificDay.value = false },
+                    currentVisibleDayTask = currentVisibleDayTasks.value,
+                    modifier = Modifier
                 )
-
-                Text(
-                    text = "$completedTasks/$totalTasks",
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.weight(0.2f)
+            }else{
+                /**
+                 * Month View
+                 */
+                MonthPager(
+                    generateMonthStructure = { calendarViewModel.generateMonthDaysStructure(it, dayWithCalendarDays) },
+                    onClickDay = {
+                        currentVisibleDayTasks.value = calendarViewModel.getCurrentVisibleDay(it.date)
+                    },
+                    dayWithCalendarDays = dayWithCalendarDays,
+                    initalDay = initalDay.value,
+                    resetChangeNowToSpecificDay = { changeNowToSpecificDay.value = false },
+                    changeNowToSpecificDay = changeNowToSpecificDay.value,
+                    changeToSpecificDay = currentVisibleDay.value,
+                    calculateMonthPage = { date, startPage -> calendarViewModel.calculateMonthPage(date, startPage) },
+                    modifier = Modifier,
+                    currentVisibleDayTask = currentVisibleDayTasks.value,
+                    onPageChanged = {
+                        currentVisibleDay.value = it
+                    },
                 )
             }
 
-            Column(
-                modifier = Modifier
-                    .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 10.dp)
-                    .fillMaxWidth()
-            ){
-                for(routineCalendarDay in currentVisibleDayTasks.value!!.routineCalendarDays){
-                    Task(
-                        routineCalendarDay = routineCalendarDay,
-                        onClick = {
-                            calendarViewModel.checkRoutineCalendarDay(it.routineCalendarDays)
-                        }
+
+            if(currentVisibleDayTasks.value != null){
+                /**
+                 * Progressbar with completed tasks count
+                 */
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, top = 30.dp, bottom = 10.dp)
+                ){
+                    val completedTasks = currentVisibleDayTasks.value!!.routineCalendarDays.count{it.routineCalendarDays.isCompleted}
+                    val totalTasks = currentVisibleDayTasks.value!!.routineCalendarDays.size
+
+                    ProgressBar(
+                        progress = if(totalTasks == 0) 0f else completedTasks.toFloat() / totalTasks.toFloat(),
+                        modifier = Modifier.fillMaxWidth().padding(end = 10.dp).height(40.dp).weight(1f)
                     )
+
+                    Text(
+                        text = "$completedTasks/$totalTasks",
+                        style = MaterialTheme.typography.headlineMedium,
+                        modifier = Modifier.weight(0.2f)
+                    )
+                }
+
+                Column(
+                    modifier = Modifier
+                        .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 10.dp)
+                        .fillMaxWidth()
+                ){
+                    for(routineCalendarDay in currentVisibleDayTasks.value!!.routineCalendarDays){
+                        Task(
+                            routineCalendarDay = routineCalendarDay,
+                            onClick = {
+                                calendarViewModel.checkRoutineCalendarDay(it.routineCalendarDays)
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -305,20 +308,16 @@ fun WeekPager(
         val weekOffset = page - initialPage
         val week = initalDay.plusWeeks(weekOffset.toLong())
 
-        if(dayWithCalendarDays.isEmpty()){
-            // loading circle while the data is loading
-            CircularProgressIndicator(modifier = Modifier.fillMaxWidth())
-        }else{
-            val weekStructure = generateWeekDays(week)
-            DayRow(
-                week = weekStructure,
-                isRowWithDayText = true,
-                unvisiblePossible = false,
-                onClickDay= onClickDay,
-                currentVisibleDayTask = currentVisibleDayTask,
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp)
-            )
-        }
+        val weekStructure = generateWeekDays(week)
+        DayRow(
+            week = weekStructure,
+            isRowWithDayText = true,
+            unvisiblePossible = false,
+            onClickDay= onClickDay,
+            currentVisibleDayTask = currentVisibleDayTask,
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp)
+        )
+
     }
 }
 
@@ -372,28 +371,24 @@ fun MonthPager(
         val monthOffset = page - initialPage
         val month = initalDay.plusMonths(monthOffset.toLong())
 
-        if(dayWithCalendarDays.isEmpty()){
-            // loading circle while the data is loading
-            CircularProgressIndicator(modifier = Modifier.fillMaxWidth())
-        }else {
-            val monthStructure = generateMonthStructure(month)
-            Column(
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-            ){
-                for ((index, weekStructure) in monthStructure.withIndex()) {
-                    DayRow(
-                        week = weekStructure,
-                        isRowWithDayText = index == 0,
-                        unvisiblePossible = true,
-                        onClickDay = onClickDay,
-                        currentVisibleDayTask = currentVisibleDayTask,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp)
-                    )
-                }
+        val monthStructure = generateMonthStructure(month)
+        Column(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+        ){
+            for ((index, weekStructure) in monthStructure.withIndex()) {
+                DayRow(
+                    week = weekStructure,
+                    isRowWithDayText = index == 0,
+                    unvisiblePossible = true,
+                    onClickDay = onClickDay,
+                    currentVisibleDayTask = currentVisibleDayTask,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp)
+                )
             }
         }
+
     }
 }
 

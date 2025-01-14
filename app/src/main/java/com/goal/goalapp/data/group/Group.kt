@@ -12,5 +12,5 @@ data class Group(
     val name: String,
     val isPrivate: Boolean,
     val key: String,
-    val description: String?
+    val description: String
 ): BaseEntity()

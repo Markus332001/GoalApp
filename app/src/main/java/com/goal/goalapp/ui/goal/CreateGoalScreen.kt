@@ -81,7 +81,7 @@ fun CreateGoalScreen(
 
     //is called when this composable gets initialized
     LaunchedEffect(Unit) {
-        if(goalId != null && createGoalViewModel.createGoal.value.id == 0){
+        if(goalId != null && goalId != 0 && createGoalViewModel.createGoal.value.id == 0){
             createGoalViewModel.getGoalDetailsFromDb(goalId)
         }
     }
@@ -115,6 +115,14 @@ fun CreateGoalScreen(
         )
     }
 
+    /**
+     * If the goal was successfully created, navigate back to the goal overview screen
+     */
+    if(createGoalState.value is CreateEditState.Success){
+        createGoalViewModel.resetCreateGoal()
+        navigateBack()
+    }
+
     CreateGoalScreenBody(
         createGoal = createGoal,
         createGoalViewModel = createGoalViewModel,
@@ -133,13 +141,7 @@ fun CreateGoalScreen(
         modifier = modifier
     )
 
-    /**
-     * If the goal was successfully created, navigate back to the goal overview screen
-     */
-    if(createGoalState.value is CreateEditState.Success){
-        navigateBack()
-        createGoalViewModel.resetCreateGoal()
-    }
+
 
 }
 
@@ -175,13 +177,13 @@ fun CreateGoalScreenBody(
         item {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = PADDING_PREVIOUS_SECTION.dp)
+                modifier = Modifier.padding(bottom = PADDING_AFTER_HEADLINE.dp)
             ) {
-            Text(
-                text = if(createGoal.id == 0)stringResource(R.string.new_goal)
-                else stringResource(R.string.edit_goal),
-                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold)
-            )
+                Text(
+                    text = if(createGoal.id == 0)stringResource(R.string.new_goal)
+                    else stringResource(R.string.edit_goal),
+                    style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold)
+                )
 
                 if(goalId != null){
                     //Delete Icon
@@ -355,10 +357,10 @@ fun CreateGoalScreenBody(
                 targetValue = item.targetValue,
                 withProgressBar = false,
                 onClick = {
-                    if(item.id == 0){
+                    //if(item.id == 0){
                         createGoalViewModel.toEditRoutineScreen(item)
-                    }
-                    toEditRoutineScreen(item.id)
+                    //}
+                    toEditRoutineScreen(0)
                 },
                 modifier = Modifier.padding(top = PADDING_BETWEEN_ELEMENTS.dp)
             )
