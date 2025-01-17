@@ -3,6 +3,7 @@ package com.goal.goalapp.data.user
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
+import com.goal.goalapp.data.Role
 import com.goal.goalapp.data.group.Group
 
 @Entity(
@@ -24,6 +25,7 @@ import com.goal.goalapp.data.group.Group
     indices = [Index("userId"), Index("groupId")]
 )
 data class UserGroupCrossRef (
-    val userId: Long,
-    val groupId: Long
+    val userId: Int,
+    val groupId: Int,
+    val role: Role
 )

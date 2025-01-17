@@ -84,4 +84,9 @@ interface GoalDao {
 
     @Query("SELECT * FROM goals WHERE userId = :userId")
     fun getGoalsByUserIdStream(userId: Int): Flow<List<Goal>>
+
+    @Transaction
+    @Query("SELECT * FROM goals WHERE userId = :userId")
+    suspend fun getGoalsWithDetailsByUserId(userId: Int): List<GoalWithDetails>
+
 }

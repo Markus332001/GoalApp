@@ -177,7 +177,7 @@ fun CreateRoutineScreenBody(
          */
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = PADDING_PREVIOUS_SECTION.dp)
+            modifier = Modifier.padding(bottom = PADDING_PREVIOUS_SECTION.dp, top = 20.dp)
         ) {
             Text(
                 text = if (routine.id == 0) stringResource(R.string.create_routine) else stringResource(

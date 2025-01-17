@@ -2,7 +2,6 @@ package com.goal.goalapp.ui.goal
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,9 +17,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -28,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -48,8 +47,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.goal.goalapp.R
 import com.goal.goalapp.data.CompletionType
+import com.goal.goalapp.data.goal.GoalWithDetails
+import com.goal.goalapp.data.group.Group
 import com.goal.goalapp.ui.AppViewModelProvider
 import com.goal.goalapp.ui.components.BackArrow
+import com.goal.goalapp.ui.components.ManagePostDialogs
 import com.goal.goalapp.ui.components.ProgressBar
 import com.goal.goalapp.ui.components.RoutineCard
 import com.goal.goalapp.ui.components.ScrollableTextField
@@ -59,26 +61,52 @@ import com.goal.goalapp.ui.helper.convertDateToStringFormatDots
 @Composable
 fun GoalDetailsScreen(
     goalId: Int?,
-    navigateBack: () -> Unit,
     toRoutineDetailsScreen: (Int) -> Unit,
     toEditGoalScreen: (Int) -> Unit,
     toGoalOverviewScreen: () -> Unit,
     modifier: Modifier = Modifier,
     goalDetailsViewModel: GoalDetailsViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ){
-    val goalDetailsUiState by goalDetailsViewModel.goalDetailsUiState.collectAsState()
+    val goalWithDetails by goalDetailsViewModel.goalWithDetails.collectAsState()
+    val openPostDialog = remember { mutableStateOf(false) }
+    val userGroups = remember { mutableStateOf<List<Group>?>(null) }
+    val userId by goalDetailsViewModel.userId.collectAsState()
 
-    if(goalId != null && goalDetailsUiState.goalId != goalId){
+    if(goalId != null && goalWithDetails.goal.id != goalId){
         goalDetailsViewModel.loadGoal(goalId)
     }
 
-    if(goalDetailsUiState.goalId != 0){
+    if(openPostDialog.value && goalWithDetails.goal.id != 0){
+
+        //loads all goals from the user asynchronous
+        LaunchedEffect(Unit) {
+            userGroups.value = goalDetailsViewModel.getAllGroupsFromUser()
+        }
+
+        //opens the dialogs, when the data from db is loaded
+        if (userGroups.value != null) {
+            ManagePostDialogs(
+                goalWithDetailsList = null,
+                goalWithDetails = goalWithDetails,
+                onDismiss = {openPostDialog.value = false},
+                onConfirm = { postWithDetails, groups ->
+                    goalDetailsViewModel.addPostWithDetailsDb(postWithDetails, groups)
+                    openPostDialog.value = false
+                },
+                groups = userGroups.value,
+                fromGroup = null
+            )
+        }
+    }
+
+    if(goalWithDetails.goal.id != 0){
         GoalDetailsScreenBody(
             navigateBack = toGoalOverviewScreen,
-            goalDetailsUiState = goalDetailsUiState,
+            goalWithDetails = goalWithDetails,
             goalDetailsViewModel = goalDetailsViewModel,
             toRoutineDetailsScreen = toRoutineDetailsScreen,
             toEditGoalScreen = toEditGoalScreen,
+            showPostDialog = { openPostDialog.value = true },
             modifier = modifier
         )
     }
@@ -89,26 +117,27 @@ fun GoalDetailsScreen(
 @Composable
 fun GoalDetailsScreenBody(
     navigateBack: () -> Unit,
-    goalDetailsUiState: GoalDetailsUiState,
+    goalWithDetails: GoalWithDetails,
     goalDetailsViewModel: GoalDetailsViewModel,
     toRoutineDetailsScreen: (Int) -> Unit,
     toEditGoalScreen: (Int) -> Unit,
+    showPostDialog: () -> Unit,
     modifier: Modifier = Modifier,
 ){
     var showChangeValueDialog by remember { mutableStateOf(false) }
 
     if(showChangeValueDialog){
 
-        if(goalDetailsUiState.completionCriteria.targetValue != null && goalDetailsUiState.completionCriteria.currentValue != null){
+        if(goalWithDetails.completionCriteria.targetValue != null && goalWithDetails.completionCriteria.currentValue != null){
             CompletionCriteriaReachTargetValueDialog(
                 onDismiss = { showChangeValueDialog = false },
                 onConfirm = {
                     goalDetailsViewModel.updateTargetValue(it)
                     showChangeValueDialog = false
                             },
-                targetValue = goalDetailsUiState.completionCriteria.targetValue,
-                currentValue = goalDetailsUiState.completionCriteria.currentValue,
-                unit = goalDetailsUiState.completionCriteria.unit?: ""
+                targetValue = goalWithDetails.completionCriteria.targetValue,
+                currentValue = goalWithDetails.completionCriteria.currentValue,
+                unit = goalWithDetails.completionCriteria.unit?: ""
             )
         }
     }
@@ -129,19 +158,19 @@ fun GoalDetailsScreenBody(
         item{
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = PADDING_PREVIOUS_SECTION.dp)
+                modifier = Modifier.padding(bottom = PADDING_PREVIOUS_SECTION.dp, top = 20.dp)
             ){
                 Text(
-                    text = goalDetailsUiState.title,
+                    text = goalWithDetails.goal.title,
                     style = MaterialTheme.typography.headlineLarge,
                     )
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Send,
+                    imageVector = Icons.Default.Share,
                     contentDescription = stringResource(R.string.share),
                     modifier = Modifier
                         .padding(start = 10.dp)
                         .size(30.dp)
-                        .clickable { /*TODO*/ }
+                        .clickable { showPostDialog()}
                 )
                 Icon(
                     imageVector = Icons.Default.Create,
@@ -149,7 +178,7 @@ fun GoalDetailsScreenBody(
                     modifier = Modifier
                         .padding(start = 10.dp)
                         .size(30.dp)
-                        .clickable { toEditGoalScreen(goalDetailsUiState.goalId) }
+                        .clickable { toEditGoalScreen(goalWithDetails.goal.id) }
                 )
             }
         }
@@ -157,28 +186,27 @@ fun GoalDetailsScreenBody(
         /**
          * Deadline
          */
-        if(goalDetailsUiState.deadline != null){
-            item{
-                Text(
-                    text = stringResource(R.string.until) + " " + convertDateToStringFormatDots(goalDetailsUiState.deadline),
-                    style = MaterialTheme.typography.headlineMedium
-                )
-            }
+        item{
+            Text(
+                text = stringResource(R.string.until) + " " + convertDateToStringFormatDots(goalWithDetails.goal.deadline),
+                style = MaterialTheme.typography.headlineMedium
+            )
         }
+
 
         /**
          * progress
          */
         item{
             ProgressDisplay(
-                completionType = goalDetailsUiState.completionCriteria.completionType,
-                progress = goalDetailsUiState.progress,
-                targetValue = goalDetailsUiState.completionCriteria.targetValue,
+                completionType = goalWithDetails.completionCriteria.completionType,
+                progress = goalWithDetails.goal.progress,
+                targetValue = goalWithDetails.completionCriteria.targetValue,
                 onClickReachGoal = { goalDetailsViewModel.toggleProgressReachGoal() },
-                onClickReachTargetAdd = { goalDetailsViewModel.addOrSubtractTargetValue(true) },
-                onClickReachTargetSubtract = { goalDetailsViewModel.addOrSubtractTargetValue(false) },
-                unit = goalDetailsUiState.completionCriteria.unit,
-                currentValue = goalDetailsUiState.completionCriteria.currentValue,
+                onClickReachTargetAdd = { goalDetailsViewModel.addOrSubtractCurrentValue(true) },
+                onClickReachTargetSubtract = { goalDetailsViewModel.addOrSubtractCurrentValue(false) },
+                unit = goalWithDetails.completionCriteria.unit,
+                currentValue = goalWithDetails.completionCriteria.currentValue,
                 onClickOpenChangeValueDialog = { showChangeValueDialog = true },
                 modifier = Modifier
                     .padding(top = 20.dp)
@@ -198,7 +226,7 @@ fun GoalDetailsScreenBody(
         }
         item{
             ScrollableTextField(
-                text = goalDetailsUiState.notes,
+                text = goalWithDetails.goal.notes,
                 height = 200
             )
         }
@@ -214,19 +242,19 @@ fun GoalDetailsScreenBody(
             )
         }
 
-        items(items = goalDetailsUiState.routines) { routine ->
+        items(items = goalWithDetails.routines) { routine ->
             RoutineCard(
-                title = routine.title,
-                frequency = routine.frequency,
-                progressConnected = goalDetailsUiState.completionCriteria.completionType == CompletionType.ConnectRoutine,
-                progress = routine.progress,
+                title = routine.routine.title,
+                frequency = routine.routine.frequency,
+                progressConnected = goalWithDetails.completionCriteria.completionType == CompletionType.ConnectRoutine,
+                progress = routine.routine.progress,
                 withProgressBar = true,
-                startDate = routine.startDate,
-                daysOfWeek = routine.daysOfWeek,
-                intervalDays = routine.intervalDays,
-                endDate = routine.endDate,
-                targetValue = routine.targetValue,
-                onClick = { toRoutineDetailsScreen(routine.id) },
+                startDate = routine.routine.startDate,
+                daysOfWeek = routine.routine.daysOfWeek,
+                intervalDays = routine.routine.intervalDays,
+                endDate = routine.routine.endDate,
+                targetValue = routine.routine.targetValue,
+                onClick = { toRoutineDetailsScreen(routine.routine.id) },
                 modifier = Modifier.padding(bottom = 10.dp)
             )
         }

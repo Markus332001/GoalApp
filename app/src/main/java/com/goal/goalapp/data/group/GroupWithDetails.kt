@@ -13,12 +13,18 @@ data class GroupWithDetails(
     @Embedded val group: Group,
     @Relation(
         parentColumn = "id",
-        entityColumn = "groupId"
+        entityColumn = "id",
+        associateBy = Junction(
+            value = GroupGroupCategoryCrossRef::class,
+            parentColumn = "groupId",
+            entityColumn = "groupCategoryId"
+        )
     )
     val categories: List<GroupCategory>,
     @Relation(
         parentColumn = "id",
         entityColumn = "id",
+        entity = User::class,
         associateBy = Junction(
             value = UserGroupCrossRef::class,
             parentColumn = "groupId",
@@ -37,5 +43,4 @@ data class GroupWithDetails(
         )
     )
     val posts: List<PostWithDetails>
-
 )

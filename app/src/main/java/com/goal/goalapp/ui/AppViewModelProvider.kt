@@ -1,20 +1,20 @@
 package com.goal.goalapp.ui
 
 import android.app.Application
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory
-import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.goal.goalapp.GoalApplication
 import com.goal.goalapp.ui.calender.CalendarViewModel
-import com.goal.goalapp.ui.chat.CreateEditGroupViewModel
-import com.goal.goalapp.ui.chat.GroupViewModel
+import com.goal.goalapp.ui.group.CreateEditGroupViewModel
+import com.goal.goalapp.ui.group.GroupViewModel
 import com.goal.goalapp.ui.goal.CreateGoalViewModel
 import com.goal.goalapp.ui.goal.GoalDetailsViewModel
 import com.goal.goalapp.ui.goal.GoalOverviewViewModel
 import com.goal.goalapp.ui.goal.RoutineDetailsViewModel
+import com.goal.goalapp.ui.group.GroupChatViewModel
+import com.goal.goalapp.ui.group.GroupDetailsViewModel
 import com.goal.goalapp.ui.login.LoginViewModel
 import com.goal.goalapp.ui.login.RegisterViewModel
 
@@ -58,7 +58,10 @@ object AppViewModelProvider{
 
         initializer {
             GoalDetailsViewModel(
-                goalApplication().container.goalRepository
+                goalApplication().container.goalRepository,
+                goalApplication().container.userSessionStorage,
+                goalApplication().container.postRepository,
+                goalApplication().container.groupRepository
             )
         }
 
@@ -86,6 +89,21 @@ object AppViewModelProvider{
             CreateEditGroupViewModel(
                 goalApplication().container.groupRepository,
                 goalApplication().container.userSessionStorage
+            )
+        }
+
+        initializer {
+            GroupChatViewModel(
+                goalApplication().container.groupRepository,
+                goalApplication().container.userSessionStorage,
+                goalApplication().container.goalRepository,
+                goalApplication().container.postRepository,
+            )
+        }
+
+        initializer {
+            GroupDetailsViewModel(
+                goalApplication().container.groupRepository
             )
         }
     }

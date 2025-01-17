@@ -8,32 +8,30 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.goal.goalapp.R
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.goal.goalapp.ui.calender.CalendarScreen
-import com.goal.goalapp.ui.chat.GroupScreen
+import com.goal.goalapp.ui.group.CreateEditGroupScreen
+import com.goal.goalapp.ui.group.GroupScreen
 import com.goal.goalapp.ui.goal.CreateGoalScreen
 import com.goal.goalapp.ui.goal.CreateGoalViewModel
-import com.goal.goalapp.ui.goal.CreateRoutine
 import com.goal.goalapp.ui.goal.CreateRoutineScreen
 import com.goal.goalapp.ui.goal.GoalDetailsScreen
 import com.goal.goalapp.ui.goal.GoalOverviewScreen
 import com.goal.goalapp.ui.goal.RoutineDetailsScreen
+import com.goal.goalapp.ui.group.GroupChatScreen
+import com.goal.goalapp.ui.group.GroupDetailsScreen
 import com.goal.goalapp.ui.login.StartScreen
 import com.goal.goalapp.ui.login.LoginScreen
 import com.goal.goalapp.ui.login.RegisterScreen
@@ -78,7 +76,11 @@ enum class NavigationScreens (@StringRes val title: Int){
     GoalDetailsScreen(title = R.string.goal_details),
     RoutineDetailsScreen(title = R.string.routine_details),
     EditGoalScreen(title = R.string.edit_goal),
-    EditRoutineScreen(title = R.string.edit_routine);
+    EditRoutineScreen(title = R.string.edit_routine),
+    CreateGroupScreen(title = R.string.create_group),
+    EditGroupScreen(title = R.string.edit_group),
+    GroupChatScreen(title = R.string.group_chat),
+    GroupDetailsScreen(title = R.string.group_details);
 
     // function for dynamic routes
     fun withArgs(vararg args: String): String {
@@ -229,7 +231,6 @@ fun Navigation(
             val goalId = backStackEntry.arguments?.getInt("goalId")
             GoalDetailsScreen(
                 goalId = goalId,
-                navigateBack = { navController.navigateUp() },
                 toRoutineDetailsScreen = { routineId ->
                     navController.navigate(NavigationScreens.RoutineDetailsScreen.withArgs(routineId.toString()))
                 },
@@ -274,11 +275,70 @@ fun Navigation(
                 selectedScreen = NavigationScreens.ChatsMain,
                 screen = {
                     GroupScreen(
+                        toCreateGroupScreen = {
+                            navController.navigate(NavigationScreens.CreateGroupScreen.name)
+                        },
+                        toGroupChatScreen = {
+                            navController.navigate(NavigationScreens.GroupChatScreen.withArgs(it.toString()))
+                        },
                         modifier = Modifier.padding(bottom = it.calculateBottomPadding())
                     )
                 },
                 navController = navController
 
+            )
+        }
+        composable(route = NavigationScreens.CreateGroupScreen.name) {
+            CreateEditGroupScreen(
+                navigateBack = { navController.navigateUp() },
+                groupId = null,
+                toGroupOverviewScreen = {navController.navigate(NavigationScreens.ChatsMain.name)},
+            )
+        }
+
+        composable(
+            route = "${NavigationScreens.EditGroupScreen.name}/{groupId}",
+            arguments = listOf(navArgument("groupId") {
+                type = NavType.IntType
+            })
+        ) {  backStackEntry ->
+            val groupId = backStackEntry.arguments?.getInt("groupId")
+            CreateEditGroupScreen(
+                navigateBack = { navController.navigateUp() },
+                groupId = groupId,
+                toGroupOverviewScreen = {navController.navigate(NavigationScreens.ChatsMain.name)},
+            )
+        }
+
+        composable(
+            route = "${NavigationScreens.GroupChatScreen.name}/{groupId}",
+            arguments = listOf(navArgument("groupId") {
+                type = NavType.IntType
+            })
+        ) {  backStackEntry ->
+            val groupId = backStackEntry.arguments?.getInt("groupId")
+            GroupChatScreen(
+                groupId = groupId,
+                navigateBack = { navController.navigateUp() },
+                toGroupDetailsScreen = {groupId ->
+                    navController.navigate(NavigationScreens.GroupDetailsScreen.withArgs(groupId.toString()))
+                }
+            )
+        }
+
+        composable(
+            route = "${NavigationScreens.GroupDetailsScreen.name}/{groupId}",
+            arguments = listOf(navArgument("groupId") {
+                type = NavType.IntType
+            })
+        ) {backStackEntry ->
+            val groupId = backStackEntry.arguments?.getInt("groupId")
+            GroupDetailsScreen(
+                navigateBack = { navController.navigateUp() },
+                groupId = groupId,
+                toEditGroupScreen = {
+                    navController.navigate(NavigationScreens.EditGroupScreen.withArgs(groupId.toString()))
+                }
             )
         }
     }

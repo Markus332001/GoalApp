@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -115,61 +116,70 @@ fun SelectCategoriesDialog(
     selectedCategories: List<GroupCategory>,
     onDismiss: () -> Unit,
     onConfirm: (List<GroupCategory>) -> Unit,
-    modifier: Modifier
+    modifier: Modifier = Modifier
 ){
     val searchInput = remember { mutableStateOf("") }
-    val newSelectedCategories = remember { selectedCategories.toMutableList() }
+    val newSelectedCategories = remember { mutableStateOf(selectedCategories)}
     val searchedCategories = remember { mutableStateOf(allCategories) }
 
     Dialog(
         onDismissRequest = onDismiss
     ) {
-        Column(
-            modifier = modifier,
-        ){
-            SearchBar(
-                searchInput = searchInput.value,
-                label = searchLabel,
-                onSearchInputChanged = {
-                    searchInput.value = it
-                    searchedCategories.value = getSearchCategories(searchInput.value, allCategories)
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-            HorizontalDivider(modifier.padding(top = 5.dp, bottom = 5.dp).fillMaxWidth())
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .background(
+                    color = colorResource(R.color.cardsBackground),
+                    shape = RoundedCornerShape(8.dp)
+                )
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(10.dp)
+            ) {
+                SearchBar(
+                    searchInput = searchInput.value,
+                    label = searchLabel,
+                    onSearchInputChanged = {
+                        searchInput.value = it
+                        searchedCategories.value =
+                            getSearchCategories(searchInput.value, allCategories)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-            LazyColumn {
-                items(searchedCategories.value.size) { index ->
-                    val category = searchedCategories.value[index]
-                    val isSelected = newSelectedCategories.contains(category)
+                HorizontalDivider(
+                    thickness = 2.dp,
+                    modifier = modifier.padding(top = 5.dp, bottom = 5.dp).fillMaxWidth()
+                )
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                    ){
-                        Checkbox(
-                            checked = isSelected,
-                            onCheckedChange = {
-                                if(isSelected){
-                                    newSelectedCategories.remove(category)
-                                } else {
-                                    newSelectedCategories.add(category)
-                                }
-                            },
-                            modifier = Modifier.padding(end = 10.dp)
-                        )
+                LazyColumn(
+                    modifier = Modifier.padding(top = 10.dp).fillMaxWidth().height(300.dp)
+                ) {
+                    items(searchedCategories.value.size) { index ->
+                        val category = searchedCategories.value[index]
+                        val isSelected = newSelectedCategories.value.contains(category)
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Checkbox(
+                                checked = isSelected,
+                                onCheckedChange = {
+                                    if (isSelected) {
+                                        newSelectedCategories.value -= category
+                                    } else {
+                                        newSelectedCategories.value += category
+                                    }
+                                },
+                                modifier = Modifier.padding(end = 5.dp)
+                            )
+                            Text(text = category.name)
+                        }
                     }
                 }
-            }
 
-            HorizontalDivider(modifier.padding(top = 5.dp, bottom = 5.dp).fillMaxWidth())
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-            ){
                 Button(
-                    onClick = { newSelectedCategories.clear() },
+                    onClick = { newSelectedCategories.value = emptyList() },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colorResource(R.color.cardsBackground),
                         contentColor = colorResource(R.color.button_font)
@@ -181,46 +191,61 @@ fun SelectCategoriesDialog(
                             shape = RoundedCornerShape(16.dp)
                         )
                         .fillMaxWidth()
-                        .weight(1f)
-                ){
-                    Text( text = stringResource(R.string.reset))
-                }
-                Spacer(modifier = Modifier.weight(0.4f))
-
-                Button(
-                    onClick = { onConfirm(newSelectedCategories) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(R.color.primary),
-                        contentColor = colorResource(R.color.button_font_light)
-                    ),
-                    modifier = Modifier
-                        .padding(5.dp)
-                        .shadow(
-                            elevation = 8.dp,
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                        .fillMaxWidth()
-                        .weight(1f)
-                ){
-                    Text( text = stringResource(R.string.confirm))
+                        .height(40.dp)
+                ) {
+                    Text(text = stringResource(R.string.reset))
                 }
 
-                Button(
-                    onClick = { onDismiss() },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(R.color.cardsBackground),
-                        contentColor = colorResource(R.color.button_font)
-                    ),
+                HorizontalDivider(
+                    thickness = 2.dp,
+                    modifier = modifier.padding(top = 5.dp, bottom = 5.dp).fillMaxWidth()
+                )
+
+
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .padding(5.dp)
-                        .shadow(
-                            elevation = 8.dp,
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                        .fillMaxWidth()
-                        .weight(1f)
-                ){
-                    Text( text = stringResource(R.string.cancel))
+                        .fillMaxWidth().padding(top = 5.dp)
+                ) {
+
+                    Button(
+                        onClick = { onDismiss() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorResource(R.color.cardsBackground),
+                            contentColor = colorResource(R.color.button_font)
+                        ),
+                        modifier = Modifier
+                            .padding(5.dp)
+                            .shadow(
+                                elevation = 8.dp,
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .height(50.dp)
+                    ) {
+                        Text(text = stringResource(R.string.cancel))
+                    }
+
+                    Button(
+                        onClick = { onConfirm(newSelectedCategories.value) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorResource(R.color.primary),
+                            contentColor = colorResource(R.color.button_font_light)
+                        ),
+                        modifier = Modifier
+                            .padding(5.dp)
+                            .shadow(
+                                elevation = 8.dp,
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .height(50.dp)
+                    ) {
+                        Text(text = stringResource(R.string.confirm))
+                    }
                 }
             }
         }

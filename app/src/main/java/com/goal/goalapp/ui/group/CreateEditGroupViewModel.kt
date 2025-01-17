@@ -1,12 +1,14 @@
-package com.goal.goalapp.ui.chat
+package com.goal.goalapp.ui.group
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.goal.goalapp.data.UserSessionStorage
+import com.goal.goalapp.data.group.Group
 import com.goal.goalapp.data.group.GroupCategory
 import com.goal.goalapp.data.group.GroupRepository
 import com.goal.goalapp.data.group.GroupWithCategories
-import com.goal.goalapp.data.post.PostWithDetails
+import com.goal.goalapp.data.group.request.CreateGroupWithDetailsRequest
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -93,6 +95,65 @@ class CreateEditGroupViewModel(
         _createGroup.value = _createGroup.value.copy(
             categories = newCategories
         )
+    }
+
+    fun createGroup(){
+        _createEditGroupState.value = CreateEditGroupState.Loading
+
+        viewModelScope.launch {
+            /**
+             * Sets the userId
+             */
+            val userSession = userSessionStorage.loadLoginStatus()
+            if(userSession.userId == null){
+                _createEditGroupState.value = CreateEditGroupState.Error("Ungültige Benutzer ID")
+                cancel()
+            }
+
+            val groupWithCategories = CreateGroupWithDetailsRequest(
+                group = Group(
+                    name = _createGroup.value.name,
+                    isPrivate = _createGroup.value.isPrivate,
+                    key = _createGroup.value.key,
+                    description = _createGroup.value.description,
+                ),
+                categories = _createGroup.value.categories,
+                userId = userSession.userId?.toLong() ?: return@launch
+            )
+            val groupId = groupRepository.insertGroupWithDetailsRequest(groupWithCategories)
+
+            if(groupId > 0){
+                _createEditGroupState.value = CreateEditGroupState.Success
+            }else{
+                _createEditGroupState.value = CreateEditGroupState.Error("Error creating group")
+            }
+        }
+    }
+
+    fun editGroup(){
+        viewModelScope.launch {
+            groupRepository.updateGroupWithCategories(
+                GroupWithCategories(
+                    group = Group(
+                        id = _createGroup.value.id,
+                        name = _createGroup.value.name,
+                        isPrivate = _createGroup.value.isPrivate,
+                        key = _createGroup.value.key,
+                        description = _createGroup.value.description
+                    ),
+                    categories = _createGroup.value.categories
+                )
+            )
+            _createEditGroupState.value = CreateEditGroupState.Success
+        }
+    }
+
+    fun createOrEditGroup(){
+        if(_createGroup.value.id == 0){
+            createGroup()
+        }else{
+            editGroup()
+        }
     }
 
     fun resetCreateGroup() {

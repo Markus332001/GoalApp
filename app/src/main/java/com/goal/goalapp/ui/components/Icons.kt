@@ -21,7 +21,6 @@ fun BackArrow(
         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
         contentDescription = stringResource(R.string.back_arrow),
         modifier = modifier
-            .padding(bottom = 20.dp)
             .clickable {
                 navigateBack()
             }

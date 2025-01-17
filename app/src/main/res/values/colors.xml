@@ -17,4 +17,6 @@
     <color name="button_font_light">#FFFFFF</color>
     <color name="cardsBackground">#ECE6F0</color>
     <color name="start_screen">#8bbab3</color>
+    <color name="disabled_button">#E0E0E0</color>
+    <color name="disabled_button_font">#9E9E9E</color>
 </resources>

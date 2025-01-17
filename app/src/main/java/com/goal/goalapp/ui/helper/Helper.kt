@@ -4,14 +4,24 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.goal.goalapp.R
 import com.goal.goalapp.data.Frequency
+import com.goal.goalapp.data.goal.GoalWithDetails
+import com.goal.goalapp.data.goal.Routine
 import com.goal.goalapp.data.goal.RoutineCalendarDays
+import com.goal.goalapp.data.goal.RoutineSummary
 import com.goal.goalapp.data.goal.RoutineWithCalendarDays
+import com.goal.goalapp.data.group.Group
+import com.goal.goalapp.data.post.Post
+import com.goal.goalapp.data.post.PostWithDetails
+import com.goal.goalapp.data.user.User
+import com.goal.goalapp.ui.components.SelectGoalDialog
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -196,17 +206,49 @@ fun getMonthString(month: Int): String{
         else -> ""
     }
 }
-
-@Preview
 @Composable
-fun GetMonthsDaysForCalendarPreview(){
-    val monthsDaysForCalendar = getMonthDaysForCalendar(4, 2023)
-    Column{
-        for (day in monthsDaysForCalendar) {
-            Text(
-                text = convertDateToStringFormatDots(day.date) + " " + day.date.dayOfWeek
-            )
-        }
+fun getStringFromFrequency(routine: Routine): String{
+    return when(routine.frequency){
+        Frequency.Daily -> stringResource(R.string.daily)
+        Frequency.Weekly -> stringResource(R.string.weekly) + ": " + getDaysOfWeekShort(routine.daysOfWeek ?: emptyList())
+        Frequency.IntervalDays -> stringResource(R.string.every) + " " + routine.intervalDays.toString() + " " + stringResource(R.string.day)
+    }
+}
+
+@Composable
+fun transformInfosForPost(
+    goalWithDetails: GoalWithDetails,
+    routines: List<Routine>,
+    withProgress: Boolean,
+): PostWithDetails{
+    val routineSummaries = routines.map{
+        RoutineSummary(
+            postId = 0,
+            title = it.title,
+            frequency = getStringFromFrequency(it),
+            progress = it.progress
+        )
     }
 
+    return PostWithDetails(
+        post = Post(
+            userId = 0,
+            groupId = 0,
+            goalName = goalWithDetails.goal.title,
+            progress = if(withProgress) goalWithDetails.goal.progress else null,
+            completionType = if(withProgress) goalWithDetails.completionCriteria.completionType else null,
+            targetValue = if(withProgress) goalWithDetails.completionCriteria.targetValue else null,
+            currentValue = if(withProgress) goalWithDetails.completionCriteria.currentValue else null,
+            unit = if(withProgress) goalWithDetails.completionCriteria.unit else null,
+            likesUserIds = emptyList()
+        ),
+        comments = emptyList(),
+        routineSummary = routineSummaries,
+        user = User(
+            username = "",
+            email = "",
+            passwordHash = ""
+        )
+    )
 }
+

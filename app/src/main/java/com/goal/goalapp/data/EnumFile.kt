@@ -7,3 +7,7 @@ enum class CompletionType {
 enum class Frequency {
     Daily, Weekly, IntervalDays
 }
+
+enum class Role{
+    OWNER, ADMIN, MEMBER
+}

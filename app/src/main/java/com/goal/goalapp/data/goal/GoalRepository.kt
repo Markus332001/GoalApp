@@ -151,4 +151,9 @@ interface GoalRepository {
      */
     fun getGoalsByUserIdStream(userId: Int): Flow<List<Goal>>
 
+    /**
+     * Retrieve all goals with details by the provided user id
+     */
+    suspend fun getGoalsWithDetailsByUserId(userId: Int): List<GoalWithDetails>
+
 }

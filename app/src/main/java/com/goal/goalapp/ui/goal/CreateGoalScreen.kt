@@ -177,7 +177,7 @@ fun CreateGoalScreenBody(
         item {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = PADDING_AFTER_HEADLINE.dp)
+                modifier = Modifier.padding(bottom = PADDING_AFTER_HEADLINE.dp, top = 20.dp)
             ) {
                 Text(
                     text = if(createGoal.id == 0)stringResource(R.string.new_goal)

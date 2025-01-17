@@ -222,6 +222,7 @@ class OfflineGoalRepository(private val goalDao: GoalDao) : GoalRepository  {
 
     override fun getGoalsByUserIdStream(userId: Int): Flow<List<Goal>> = goalDao.getGoalsByUserIdStream(userId)
 
+     override suspend fun getGoalsWithDetailsByUserId(userId: Int): List<GoalWithDetails> = goalDao.getGoalsWithDetailsByUserId(userId)
 
     private fun calculateProgressGoal(goal: Goal, routines: List<Routine>, completionCriterion: CompletionCriterion): Float{
 

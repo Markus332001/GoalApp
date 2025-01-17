@@ -7,50 +7,73 @@ import com.goal.goalapp.data.UserSessionStorage
 import com.goal.goalapp.data.goal.CompletionCriterion
 import com.goal.goalapp.data.goal.Goal
 import com.goal.goalapp.data.goal.GoalRepository
-import com.goal.goalapp.data.goal.Routine
+import com.goal.goalapp.data.goal.GoalWithDetails
+import com.goal.goalapp.data.group.Group
+import com.goal.goalapp.data.group.GroupRepository
+import com.goal.goalapp.data.post.PostRepository
+import com.goal.goalapp.data.post.PostWithDetails
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 class GoalDetailsViewModel(
-    private val goalRepository: GoalRepository
+    private val goalRepository: GoalRepository,
+    private val userSessionStorage: UserSessionStorage,
+    private val postRepository: PostRepository,
+    private val groupRepository: GroupRepository
 ): ViewModel() {
 
-    private val _goalDetailsUiState = MutableStateFlow(GoalDetailsUiState())
-    val goalDetailsUiState: StateFlow<GoalDetailsUiState> = _goalDetailsUiState
+    private val _goalWithDetails = MutableStateFlow(GoalWithDetails(
+        goal = Goal(
+            id = 0,
+            title = "",
+            progress = 0f,
+            deadline = LocalDate.now(),
+            notes = "",
+            userId = 0
+        ),
+        routines = emptyList(),
+        completionCriteria = CompletionCriterion(
+            id = 0,
+            completionType = CompletionType.ReachGoal,
+            targetValue = 0,
+            currentValue = 0,
+            unit = "",
+            goalId = 0
+        )
+    ))
+    val goalWithDetails: StateFlow<GoalWithDetails> = _goalWithDetails
+
+    val userId:StateFlow<Int> = userSessionStorage.userIdFlow
+        .filterNotNull()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = 0
+        )
+
 
     fun loadGoal(goalId: Int) {
         viewModelScope.launch {
             goalRepository.getGoalWithDetailsByIdStream(goalId)
                 .filterNotNull()
-                .map{
-                    GoalDetailsUiState(
-                        goalId = it.goal.id,
-                        title = it.goal.title,
-                        progress = it.goal.progress,
-                        deadline = it.goal.deadline,
-                        notes = it.goal.notes,
-                        routines = it.routines.map{r -> r.routine},
-                        completionCriteria = it.completionCriteria
-                    )
-                }
                 .collect{
-                    _goalDetailsUiState.value = it
+                    _goalWithDetails.value = it
                 }
         }
     }
 
     fun toggleProgressReachGoal(){
-        val newProgress = if(_goalDetailsUiState.value.progress >= 1) 0f else 1f
+        val newProgress = if(_goalWithDetails.value.goal.progress >= 1) 0f else 1f
         viewModelScope.launch{
-            val goalDb = goalRepository.getGoalByIdStream(_goalDetailsUiState.value.goalId).first()
+            val goalDb = goalRepository.getGoalByIdStream(_goalWithDetails.value.goal.id).first()
             if(goalDb != null){
-                val newGoalDb = goalDb.copy(progress = newProgress)
                 val goalDbId = goalRepository.update(goalDb.copy(progress = newProgress, id = goalDb.id))
                 println(goalDbId)
             }
@@ -61,11 +84,11 @@ class GoalDetailsViewModel(
         /**
          * Checks if the new value is valid.
          */
-        if(newValue < 0 || newValue > (_goalDetailsUiState.value.completionCriteria.targetValue?: 0)){
+        if(newValue < 0 || newValue > (_goalWithDetails.value.completionCriteria.targetValue?: 0)){
             return
         }
         viewModelScope.launch{
-            val goalWithDetailsDb = goalRepository.getGoalWithDetailsByIdStream(_goalDetailsUiState.value.goalId).first()
+            val goalWithDetailsDb = goalRepository.getGoalWithDetailsByIdStream(_goalWithDetails.value.goal.id).first()
             if(goalWithDetailsDb != null){
 
                 /**
@@ -89,30 +112,26 @@ class GoalDetailsViewModel(
         }
     }
 
-    fun addOrSubtractTargetValue(add: Boolean){
+    fun addOrSubtractCurrentValue(add: Boolean){
         /**
          * Adds or subtracts 1 from the current value.
          */
-        if(_goalDetailsUiState.value.completionCriteria.currentValue != null){
-            val newValue = _goalDetailsUiState.value.completionCriteria.currentValue!! + if(add) + 1 else - 1
-            updateTargetValue(newValue)
+        val newValue = _goalWithDetails.value.completionCriteria.currentValue!! + if(add) + 1 else - 1
+        updateTargetValue(newValue)
+    }
+
+    fun addPostWithDetailsDb(postWithDetails: PostWithDetails, groups: List<Group>){
+        if(groups.isEmpty()) return
+        viewModelScope.launch {
+            postRepository.insertPostWithDetailsToGroupsId(
+                postWithDetails.copy(post = postWithDetails.post.copy(userId = userId.value)),
+                groups.map { it.id }
+            )
         }
     }
 
-}
+    suspend fun getAllGroupsFromUser(): List<Group> {
+        return groupRepository.getGroupsByUserId(userId.value.toLong())
+    }
 
-data class GoalDetailsUiState(
-    val goalId: Int = 0,
-    val title: String = "",
-    val progress: Float = 0f,
-    val deadline: LocalDate? = null,
-    val notes: String = "",
-    val routines: List<Routine> = emptyList(),
-    val completionCriteria: CompletionCriterion = CompletionCriterion(
-        goalId = 0,
-        completionType = CompletionType.ReachGoal,
-        targetValue = null,
-        unit = null,
-        currentValue = 0
-    )
-)
+}

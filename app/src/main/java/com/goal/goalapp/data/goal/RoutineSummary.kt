@@ -22,5 +22,5 @@ data class RoutineSummary (
     val postId: Long,
     val title: String,
     val frequency: String,
-    val progress: Int
+    val progress: Float
 ): BaseEntity()

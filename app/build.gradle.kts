@@ -55,10 +55,12 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation (libs.androidx.material.icons.extended)
     implementation (libs.androidx.datastore.preferences)
+    implementation (libs.gson)
 
     //For Password Hashing
     implementation (libs.bcrypt)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.androidx.appcompat)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

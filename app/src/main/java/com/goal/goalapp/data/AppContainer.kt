@@ -5,8 +5,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
-import com.goal.goalapp.data.comment.CommentRepository
-import com.goal.goalapp.data.comment.OfflineCommentRepository
 import com.goal.goalapp.data.goal.GoalRepository
 import com.goal.goalapp.data.goal.OfflineGoalRepository
 import com.goal.goalapp.data.group.GroupRepository
@@ -22,7 +20,6 @@ import com.goal.goalapp.data.user_session.UserSessionRepository
  * App container for Dependency injection.
  */
 interface AppContainer{
-    val commentRepository: CommentRepository
     val goalRepository: GoalRepository
     val groupRepository: GroupRepository
     val postRepository: PostRepository
@@ -36,12 +33,6 @@ interface AppContainer{
  */
 class AppDataContainer(private val context: Context) : AppContainer{
 
-    /**
-     * Implementation for [CommentRepository]
-     */
-    override val commentRepository: CommentRepository by lazy {
-        OfflineCommentRepository(GoalDatabase.getDatabase(context).commentDao())
-    }
 
     /**
      * Implementation for [GoalRepository]
