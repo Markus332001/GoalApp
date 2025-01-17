@@ -118,4 +118,13 @@
     <string name="members">Mitglieder</string>
     <string name="more">Weitere</string>
     <string name="member">Mitglied</string>
+    <string name="logout">Ausloggen</string>
+    <string name="insert_group_key">Gebe den Gruppen Schlüssel ein</string>
+    <string name="promote_member">Member zum Admin befördern</string>
+    <string name="remove_member">Member entfernen</string>
+    <string name="demote_member">Member auf Member stufen</string>
+    <string name="exit_group">Aus Gruppe austreten</string>
+    <string name="congratulations">Herzlichen Glückwunsch\n</string>
+    <string name="share_your_accomplishment">Teile diese Errungenschaft unbedingt mit anderen</string>
+    <string name="congratulations_text">Glückwunsch du hast das Ziel erreicht</string>
 </resources>

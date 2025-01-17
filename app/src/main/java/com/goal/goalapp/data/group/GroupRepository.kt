@@ -1,5 +1,6 @@
 package com.goal.goalapp.data.group
 
+import com.goal.goalapp.data.Role
 import com.goal.goalapp.data.group.request.CreateGroupWithDetailsRequest
 import com.goal.goalapp.data.group.request.GroupWithDetailsAndRole
 import com.goal.goalapp.data.user.UserGroupCrossRef
@@ -26,11 +27,25 @@ interface GroupRepository {
      */
     suspend fun insertGroupWithCategoriesCrossRef(groupWithCategoriesCrossRef: GroupGroupCategoryCrossRef): Long
 
+    /**
+     * User Join Group
+     */
+    suspend fun insertUserGroupCrossRefJoinGroup(userId: Int, groupId: Int, key: String): Long
+
+    /**
+     * Update User Role in Group
+     */
+    suspend fun updateUserGroupCrossRefRole(userId: Int, groupId: Int, role: Role)
 
     /**
      * Update group in the data source
      */
     suspend fun update(group: Group)
+
+    /**
+     * Update user group cross ref in the data source
+     */
+    suspend fun updateUserGroupCrossRef(userGroupCrossRef: UserGroupCrossRef)
 
     /**
      * Update group with categories in the data source
@@ -102,5 +117,10 @@ interface GroupRepository {
      * Retrieve group categories by group id
      */
     suspend fun getGroupCategoryIdsByGroupId(groupId: Int): List<Int>
+
+    /**
+     * Get User in Group with Role
+     */
+    fun getUserInGroupWithRoleStream(userId: Int, groupId: Int): Flow<UserGroupCrossRef?>
 
 }

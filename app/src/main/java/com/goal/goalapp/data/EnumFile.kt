@@ -8,6 +8,6 @@ enum class Frequency {
     Daily, Weekly, IntervalDays
 }
 
-enum class Role{
-    OWNER, ADMIN, MEMBER
+enum class Role(val rank: Int){
+    OWNER(2), ADMIN(1), MEMBER(0)
 }

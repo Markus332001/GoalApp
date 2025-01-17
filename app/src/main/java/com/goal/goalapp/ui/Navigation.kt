@@ -3,7 +3,10 @@ package com.goal.goalapp.ui
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -11,8 +14,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -35,6 +40,7 @@ import com.goal.goalapp.ui.group.GroupDetailsScreen
 import com.goal.goalapp.ui.login.StartScreen
 import com.goal.goalapp.ui.login.LoginScreen
 import com.goal.goalapp.ui.login.RegisterScreen
+import com.goal.goalapp.ui.settings.SettingsScreen
 
 data class BottomNavigationItem(
     val title: String,
@@ -61,6 +67,12 @@ val items = listOf(
         thisIcon = NavigationScreens.ChatsMain,
         selectedIcon = { painterResource(id = R.drawable.chat_selected) },
         unselectedIcon = { painterResource(id = R.drawable.chat_unselected) }
+    ),
+    BottomNavigationItem(
+        title = "Settings",
+        thisIcon = NavigationScreens.SettingsScreen,
+        selectedIcon = { painterResource(id = R.drawable.settings_selected)  },
+        unselectedIcon = { painterResource(id = R.drawable.settings_unselected) }
     )
 )
 
@@ -80,7 +92,8 @@ enum class NavigationScreens (@StringRes val title: Int){
     CreateGroupScreen(title = R.string.create_group),
     EditGroupScreen(title = R.string.edit_group),
     GroupChatScreen(title = R.string.group_chat),
-    GroupDetailsScreen(title = R.string.group_details);
+    GroupDetailsScreen(title = R.string.group_details),
+    SettingsScreen(title = R.string.settings);
 
     // function for dynamic routes
     fun withArgs(vararg args: String): String {
@@ -165,6 +178,20 @@ fun Navigation(
                 navController = navController
             )
         }
+
+        composable(route = NavigationScreens.SettingsScreen.name) {
+            BottomNavigation(
+                selectedScreen = NavigationScreens.SettingsScreen,
+                screen = { innerPadding ->
+                    SettingsScreen(
+                        toLoginScreen = {navController.navigate(NavigationScreens.LoginScreen.name)},
+                        modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
+                    )
+                },
+                navController = navController
+            )
+        }
+
         composable(route = NavigationScreens.CreateGoalScreen.name) {
             CreateGoalScreen(
                 navigateBack = { navController.navigateUp() },
@@ -280,6 +307,9 @@ fun Navigation(
                         },
                         toGroupChatScreen = {
                             navController.navigate(NavigationScreens.GroupChatScreen.withArgs(it.toString()))
+                        },
+                        toGroupDetailsScreen = {
+                            navController.navigate(NavigationScreens.GroupDetailsScreen.withArgs(it.toString()))
                         },
                         modifier = Modifier.padding(bottom = it.calculateBottomPadding())
                     )

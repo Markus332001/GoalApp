@@ -9,6 +9,8 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.goal.goalapp.data.group.request.GroupMemberDTO
+import com.goal.goalapp.data.post.Post
+import com.goal.goalapp.data.post.PostWithDetails
 import com.goal.goalapp.data.user.User
 import com.goal.goalapp.data.user.UserGroupCrossRef
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +32,9 @@ interface GroupDao {
 
     @Update
     suspend fun update(group: Group)
+
+    @Update
+    suspend fun updateUserGroupCrossRef(userGroupCrossRef: UserGroupCrossRef)
 
     @Delete
     suspend fun deleteGroup(group: Group)
@@ -82,6 +87,9 @@ interface GroupDao {
     @Query("SELECT * FROM `group` WHERE id = :groupId")
     fun getGroupWithDetailsByIdStream(groupId: Int): Flow<GroupWithDetails?>
 
+    @Query("SELECT * FROM post WHERE groupId = :groupId ORDER BY CreatedAt ASC")
+    fun getPostsByGroupIdStream(groupId: Int): Flow<List<PostWithDetails>>
+
     @Query("""
             SELECT * FROM `Group`
             WHERE id IN (
@@ -108,5 +116,6 @@ interface GroupDao {
     @Query("SELECT groupCategoryId FROM GroupGroupCategoryCrossRef WHERE groupId = :groupId")
     suspend fun getGroupCategoryIdsByGroupId(groupId: Int): List<Int>
 
-
+    @Query("SELECT * FROM UserGroupCrossRef WHERE userId = :userId AND groupId = :groupId")
+    fun getUserInGroupWithRoleStream(userId: Int, groupId: Int): Flow<UserGroupCrossRef?>
 }

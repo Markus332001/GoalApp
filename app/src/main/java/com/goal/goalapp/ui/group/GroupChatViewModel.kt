@@ -62,8 +62,9 @@ class GroupChatViewModel(
     fun addPostWithDetailsDb(postWithDetails: PostWithDetails, groups: List<Group>){
         if(groups.isEmpty()) return
         viewModelScope.launch {
+            val groupId = groups.first().id
             postRepository.insertPostWithDetails(postWithDetails.copy(
-                post = postWithDetails.post.copy( groupId = groups.first().id, userId = userId.value)
+                post = postWithDetails.post.copy( groupId = groupId, userId = userId.value)
             ))
         }
     }

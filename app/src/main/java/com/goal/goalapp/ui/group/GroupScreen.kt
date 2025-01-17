@@ -48,6 +48,7 @@ fun GroupScreen(
     toCreateGroupScreen: () -> Unit,
     groupViewModel: GroupViewModel = viewModel(factory = AppViewModelProvider.Factory),
     toGroupChatScreen: (Int) -> Unit,
+    toGroupDetailsScreen: (Int) -> Unit,
     modifier: Modifier = Modifier
 ){
     val myFilteredGroups by groupViewModel.myFilteredGroups.collectAsState()
@@ -75,6 +76,19 @@ fun GroupScreen(
             onConfirm = {
                 groupViewModel.updateActiveFilterCategoriesMyGroups(it)
                 openMyGroupFilterDialog.value = false
+            }
+        )
+    }
+
+    if(openOtherGroupFilterDialog.value){
+        SelectCategoriesDialog(
+            searchLabel = stringResource(R.string.search_categories),
+            allCategories = filter,
+            selectedCategories = activeFilterCategoriesOtherGroups,
+            onDismiss = { openOtherGroupFilterDialog.value = false },
+            onConfirm = {
+                groupViewModel.updateActiveFilterCategoriesOtherGroups(it)
+                openOtherGroupFilterDialog.value = false
             }
         )
     }
@@ -112,7 +126,12 @@ fun GroupScreen(
                 toGroupChatScreen = toGroupChatScreen
             )
             1 -> JoinGroupScreen(
-                modifier = Modifier.padding(top = 10.dp, start = 16.dp, end = 16.dp)
+                searchInput = searchQueryOtherGroups,
+                onSearchInputChanged = { groupViewModel.updateSearchQueryOtherGroups(it) },
+                otherFilteredGroups = otherFilteredGroups,
+                onFilterClick = { openOtherGroupFilterDialog.value = true },
+                toGroupDetailsScreen = toGroupDetailsScreen,
+                modifier = Modifier.padding(top = 10.dp, start = 16.dp, end = 16.dp),
             )
         }
     }
@@ -237,7 +256,55 @@ fun GroupCard(
 
 @Composable
 fun JoinGroupScreen(
+    searchInput: String,
+    onSearchInputChanged: (String) -> Unit,
+    otherFilteredGroups: List<GroupWithCategories>,
+    onFilterClick: () -> Unit,
+    toGroupDetailsScreen: (Int) -> Unit,
     modifier: Modifier = Modifier
 ){
+    LazyColumn(
+        modifier = modifier.fillMaxWidth()
+    ){
 
+        item{
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 30.dp)
+            ){
+                SearchBar(
+                    searchInput = searchInput,
+                    onSearchInputChanged = { onSearchInputChanged(it) },
+                    label = stringResource(R.string.search_groups),
+                    height = 64,
+                    modifier = Modifier.weight(1f)
+                )
+                /**
+                 * Filter Button
+                 */
+                IconButton(
+                    onClick = { onFilterClick() },
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                ){
+                    Icon(
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = stringResource(R.string.filter_groups),
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+            }
+        }
+
+        /**
+         * Group Cards
+         */
+        items(otherFilteredGroups.size) { index ->
+            GroupCard(
+                groupWithCategories = otherFilteredGroups[index],
+                isMyGroup = false,
+                onClick = { toGroupDetailsScreen(otherFilteredGroups[index].group.id) },
+                modifier = Modifier.padding(bottom = 10.dp)
+            )
+        }
+    }
 }

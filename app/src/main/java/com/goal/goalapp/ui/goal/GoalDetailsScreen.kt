@@ -1,10 +1,12 @@
 package com.goal.goalapp.ui.goal
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,6 +24,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -39,6 +42,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -68,12 +72,34 @@ fun GoalDetailsScreen(
     goalDetailsViewModel: GoalDetailsViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ){
     val goalWithDetails by goalDetailsViewModel.goalWithDetails.collectAsState()
+    val progressChanged = remember { mutableStateOf(false) }
     val openPostDialog = remember { mutableStateOf(false) }
     val userGroups = remember { mutableStateOf<List<Group>?>(null) }
+    val openCongratulationDialog = remember { mutableStateOf(false) }
     val userId by goalDetailsViewModel.userId.collectAsState()
 
     if(goalId != null && goalWithDetails.goal.id != goalId){
         goalDetailsViewModel.loadGoal(goalId)
+    }
+
+    LaunchedEffect(goalWithDetails){
+        if(progressChanged.value){
+            //opens the congratulation dialog, if the goal is completed
+            if(goalWithDetails.goal.progress == 1f){
+                openCongratulationDialog.value = true
+            }
+        }
+        progressChanged.value = false
+    }
+
+    if(openCongratulationDialog.value){
+        CongratulationDialog(
+            onDismiss = { openCongratulationDialog.value = false },
+            onShare = {
+                openPostDialog.value = true
+                openCongratulationDialog.value = false
+            }
+        )
     }
 
     if(openPostDialog.value && goalWithDetails.goal.id != 0){
@@ -107,6 +133,7 @@ fun GoalDetailsScreen(
             toRoutineDetailsScreen = toRoutineDetailsScreen,
             toEditGoalScreen = toEditGoalScreen,
             showPostDialog = { openPostDialog.value = true },
+            onProgressChanged = { progressChanged.value = true },
             modifier = modifier
         )
     }
@@ -119,6 +146,7 @@ fun GoalDetailsScreenBody(
     navigateBack: () -> Unit,
     goalWithDetails: GoalWithDetails,
     goalDetailsViewModel: GoalDetailsViewModel,
+    onProgressChanged: () -> Unit,
     toRoutineDetailsScreen: (Int) -> Unit,
     toEditGoalScreen: (Int) -> Unit,
     showPostDialog: () -> Unit,
@@ -134,6 +162,7 @@ fun GoalDetailsScreenBody(
                 onConfirm = {
                     goalDetailsViewModel.updateTargetValue(it)
                     showChangeValueDialog = false
+                    onProgressChanged()
                             },
                 targetValue = goalWithDetails.completionCriteria.targetValue,
                 currentValue = goalWithDetails.completionCriteria.currentValue,
@@ -202,8 +231,14 @@ fun GoalDetailsScreenBody(
                 completionType = goalWithDetails.completionCriteria.completionType,
                 progress = goalWithDetails.goal.progress,
                 targetValue = goalWithDetails.completionCriteria.targetValue,
-                onClickReachGoal = { goalDetailsViewModel.toggleProgressReachGoal() },
-                onClickReachTargetAdd = { goalDetailsViewModel.addOrSubtractCurrentValue(true) },
+                onClickReachGoal = {
+                    goalDetailsViewModel.toggleProgressReachGoal()
+                    onProgressChanged()
+                                   },
+                onClickReachTargetAdd = {
+                    goalDetailsViewModel.addOrSubtractCurrentValue(true)
+                    onProgressChanged()
+                                        },
                 onClickReachTargetSubtract = { goalDetailsViewModel.addOrSubtractCurrentValue(false) },
                 unit = goalWithDetails.completionCriteria.unit,
                 currentValue = goalWithDetails.completionCriteria.currentValue,
@@ -463,6 +498,76 @@ fun CompletionCriteriaReachTargetValueDialog(
     }
 }
 
+@Composable
+fun CongratulationDialog(
+    onShare: () -> Unit = {},
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+){
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = modifier
+                .shadow(8.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color(94, 165, 191))
+                .height(500.dp)
+        ){
+            Image(
+                painter = painterResource(R.drawable.congratulations),
+                contentDescription = stringResource(R.string.congratulations),
+                modifier = Modifier
+                    .fillMaxSize()
+            )
+
+            Text(
+                text = stringResource(R.string.congratulations_text),
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.4f)
+                    .align(Alignment.BottomCenter)
+                    .background(Color(194, 224, 207))
+            ){
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ){
+                    Text(
+                        text = stringResource(R.string.share_your_accomplishment),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.Black,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(
+                        onClick = { onShare() },
+                        modifier = Modifier
+                            .padding(end = 10.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = stringResource(R.string.share),
+                            tint = colorResource(R.color.primary),
+                            modifier = Modifier
+                                .size(30.dp)
+                        )
+                    }
+
+
+                }
+            }
+        }
+    }
+}
+
 @Preview
 @Composable
 fun ProgressDisplayPreview(){
@@ -477,4 +582,10 @@ fun ProgressDisplayPreview(){
         currentValue = 50,
         onClickOpenChangeValueDialog = {}
     )
+}
+
+@Preview
+@Composable
+fun CongratulationDialogPreview(){
+    CongratulationDialog(onDismiss = {})
 }

@@ -17,6 +17,7 @@ import com.goal.goalapp.ui.group.GroupChatViewModel
 import com.goal.goalapp.ui.group.GroupDetailsViewModel
 import com.goal.goalapp.ui.login.LoginViewModel
 import com.goal.goalapp.ui.login.RegisterViewModel
+import com.goal.goalapp.ui.settings.SettingsViewModel
 
 /**
  * Provides Factory to create instance of ViewModel for the entire goal app
@@ -103,7 +104,15 @@ object AppViewModelProvider{
 
         initializer {
             GroupDetailsViewModel(
-                goalApplication().container.groupRepository
+                goalApplication().container.groupRepository,
+                goalApplication().container.userSessionStorage
+            )
+        }
+
+        initializer {
+            SettingsViewModel(
+                goalApplication().container.userSessionStorage,
+                goalApplication().container.userRepository
             )
         }
     }

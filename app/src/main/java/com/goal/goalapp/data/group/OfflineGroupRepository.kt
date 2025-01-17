@@ -5,6 +5,8 @@ import com.goal.goalapp.data.group.request.CreateGroupWithDetailsRequest
 import com.goal.goalapp.data.group.request.GroupWithDetailsAndRole
 import com.goal.goalapp.data.user.UserGroupCrossRef
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 //override the functions defined in the GroupRepository interface and call the corresponding functions from the GroupDao
@@ -36,7 +38,38 @@ class OfflineGroupRepository(private val groupDao: GroupDao) : GroupRepository {
 
     override suspend fun insertGroupWithCategoriesCrossRef(groupWithCategoriesCrossRef: GroupGroupCategoryCrossRef):Long = groupDao.insertGroupWithCategoryCrossRef(groupWithCategoriesCrossRef)
 
+    override suspend fun insertUserGroupCrossRefJoinGroup(
+        userId: Int,
+        groupId: Int,
+        key: String
+    ): Long {
+        val group = groupDao.getGroupById(groupId)
+        if(group.first()?.key != key){
+            return -1L
+        }
+        return insertUserGroupCrossRef(
+            UserGroupCrossRef(
+                userId = userId,
+                groupId = groupId,
+                role = Role.MEMBER
+            )
+        )
+    }
+
+    override suspend fun updateUserGroupCrossRefRole(userId: Int, groupId: Int, role: Role) {
+        updateUserGroupCrossRef(
+            UserGroupCrossRef(
+                userId = userId,
+                groupId = groupId,
+                role = role
+            )
+        )
+
+    }
+
     override suspend fun update(group: Group) = groupDao.update(group)
+
+    override suspend fun updateUserGroupCrossRef(userGroupCrossRef: UserGroupCrossRef) = groupDao.updateUserGroupCrossRef(userGroupCrossRef)
 
     override suspend fun updateGroupWithCategories(groupWithCategories: GroupWithCategories) {
 
@@ -74,7 +107,7 @@ class OfflineGroupRepository(private val groupDao: GroupDao) : GroupRepository {
 
     override suspend fun deleteGroupById(groupId: Int) = groupDao.deleteGroupById(groupId)
 
-    override suspend fun deleteUserGroupCrossRefByIds(userId: Long, groupId: Long) = groupDao.deleteUserGroupCrossRefByIds(userId, groupId)
+    override suspend fun deleteUserGroupCrossRefByIds(userId: Long, groupId: Long) = groupDao.deleteUserGroupCrossRefByIds(userId = userId, groupId = groupId)
 
     override suspend fun deleteGroupGroupCategoryCrossRefById(groupId: Int, groupCategoryId: Int) = groupDao.deleteGroupGroupCategoryCrossRefById(groupId = groupId, groupCategoryId = groupCategoryId)
 
@@ -89,7 +122,10 @@ class OfflineGroupRepository(private val groupDao: GroupDao) : GroupRepository {
     override suspend fun getGroupsByUserId(userId: Long): List<Group> = groupDao.getGroupsByUserId(userId)
 
     override fun getGroupWithDetailsAndRoleByIdStream(groupId: Int): Flow<GroupWithDetailsAndRole?> {
-        return groupDao.getGroupWithDetailsByIdStream(groupId).map{ groupWithDetails ->
+        val groupWithDetailsFlow = groupDao.getGroupWithDetailsByIdStream(groupId)
+        val postsFlow = groupDao.getPostsByGroupIdStream(groupId)
+
+        return combine(groupWithDetailsFlow, postsFlow) { groupWithDetails, posts ->
             GroupWithDetailsAndRole(
                 group = groupWithDetails?.group ?: Group(
                     name = "",
@@ -99,7 +135,7 @@ class OfflineGroupRepository(private val groupDao: GroupDao) : GroupRepository {
                     key = ""
                 ),
                 members = groupDao.getGroupMembersWithRoles(groupId),
-                posts = groupWithDetails?.posts ?: emptyList(),
+                posts = posts,
                 groupCategories = groupWithDetails?.categories ?: emptyList()
             )
         }
@@ -110,4 +146,6 @@ class OfflineGroupRepository(private val groupDao: GroupDao) : GroupRepository {
     override suspend fun getGroupWithCategoriesById(groupId: Int): GroupWithCategories? = groupDao.getGroupWithCategoriesById(groupId)
 
     override suspend fun getGroupCategoryIdsByGroupId(groupId: Int): List<Int> = groupDao.getGroupCategoryIdsByGroupId(groupId)
+
+    override fun getUserInGroupWithRoleStream(userId: Int, groupId: Int): Flow<UserGroupCrossRef?> = groupDao.getUserInGroupWithRoleStream(userId, groupId)
 }

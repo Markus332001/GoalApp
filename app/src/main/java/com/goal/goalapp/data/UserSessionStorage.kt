@@ -48,6 +48,15 @@ class UserSessionStorage(private val dataStore: DataStore<Preferences>) {
         )
         return userSession
     }
+
+    /**
+     * Clears the login status from the DataStore
+     */
+    suspend fun clearLoginStatus() {
+        dataStore.edit { preferences ->
+            preferences.clear()
+        }
+    }
 }
 
 data class UserSession(

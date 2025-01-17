@@ -56,7 +56,7 @@ class GroupViewModel(
     val otherGroups : StateFlow<List<GroupWithCategories>> = userSessionStorage.userIdFlow
         .filterNotNull()
         .flatMapLatest { userId ->
-            groupRepository.getGroupsWithCategoriesByUserIdStream(userId)
+            groupRepository.getGroupsWithCategoriesNotContainingUserStream(userId)
         }
         .stateIn(
             scope = viewModelScope,

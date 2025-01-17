@@ -5,6 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import com.goal.goalapp.data.Role
 import com.goal.goalapp.data.group.Group
+import kotlinx.coroutines.flow.Flow
 
 @Entity(
     primaryKeys = ["userId", "groupId"],
