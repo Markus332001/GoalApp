@@ -82,7 +82,7 @@ class LoginViewModel(
                 return true
             }
         }
-        return false;
+        return false
     }
 
 }

@@ -23,6 +23,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -47,6 +49,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -175,7 +178,6 @@ fun CalendarScreen(
                     onClickDay = {
                         currentVisibleDayTasks.value = calendarViewModel.getCurrentVisibleDay(it.date)
                     },
-                    dayWithCalendarDays = dayWithCalendarDays,
                     initalDay = initalDay.value,
                     changeToSpecificDay = currentVisibleDay.value,
                     calculateWeekPage = { date, startPage -> calendarViewModel.calculateWeekPage(date, startPage) },
@@ -236,17 +238,18 @@ fun CalendarScreen(
                     )
                 }
 
-                Column(
+                LazyColumn(
                     modifier = Modifier
                         .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 10.dp)
                         .fillMaxWidth()
                 ){
-                    for(routineCalendarDay in currentVisibleDayTasks.value!!.routineCalendarDays){
+                    items(items = currentVisibleDayTasks.value!!.routineCalendarDays){ routineCalendarDay ->
                         Task(
                             routineCalendarDay = routineCalendarDay,
                             onClick = {
                                 calendarViewModel.checkRoutineCalendarDay(it.routineCalendarDays)
-                            }
+                            },
+                            modifier = Modifier.padding(bottom = 10.dp)
                         )
                     }
                 }
@@ -262,7 +265,6 @@ fun CalendarScreen(
 fun WeekPager(
     generateWeekDays: (LocalDate) -> List<CalendarDisplay>,
     onClickDay: (CalendarDisplay) -> Unit,
-    dayWithCalendarDays: List<CalendarDisplay>,
     initalDay: LocalDate,
     onPageChanged: (LocalDate) -> Unit,
     changeToSpecificDay: LocalDate,
@@ -449,7 +451,8 @@ fun Task(
                     TextDecoration.None
             ),
             maxLines = 1,
-            modifier = Modifier.padding(start = 10.dp)
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(start = 20.dp).weight(1f)
         )
 
     }
@@ -546,7 +549,7 @@ fun Day(
 ){
     if(isVisible){
         val colorScheme1 = getColorFromCalendarDaysBackgroundColorType(calendarDaysBackgroundColorType)
-        var colorScheme2: ColorScheme = colorScheme1;
+        var colorScheme2: ColorScheme = colorScheme1
         //has to get a second for the not all tasks completed color
         if(calendarDaysBackgroundColorType == CalendarDaysBackgroundColorType.NotAllTasksCompleted){
             colorScheme2 = getColorFromCalendarDaysBackgroundColorType(CalendarDaysBackgroundColorType.AllTasksNotCompleted)

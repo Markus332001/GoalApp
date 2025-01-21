@@ -107,11 +107,7 @@ fun SelectGoalDialog(
                         onItemSelected = {
                             selectedGoal.value = it
 
-                            if(selectedGoal.value != null){
-                                isValid.value = true
-                            }else{
-                                isValid.value = false
-                            }
+                            isValid.value = selectedGoal.value != null
                         },
                         initialPage = goalWithDetails.indexOf(selectedGoal.value)
                     )
@@ -708,7 +704,7 @@ fun ManagePostDialogs(
                 showSelectGoalDetailsDialog.value = true
             },
             groups = groups,
-            beforeSelectedGroups = selectedGroups.value?: emptyList()
+            beforeSelectedGroups = selectedGroups.value
         )
     }
 

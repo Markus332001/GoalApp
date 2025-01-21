@@ -82,7 +82,7 @@ fun getMonthDaysForCalendar(month: Int, year: Int): List<CalendarDisplay>{
     val firstDayOfMonth = LocalDate.of(year, month, 1)
 
     //gets the days from last Month in the calendar view, because it has to show the whole week
-    val daysOfLastMontInCalendarView = firstDayOfMonth.dayOfWeek.value.toLong() - 1;
+    val daysOfLastMontInCalendarView = firstDayOfMonth.dayOfWeek.value.toLong() - 1
     val firstDayInCalendarView = firstDayOfMonth.minusDays(daysOfLastMontInCalendarView)
     val monthsDaysForCalendar: MutableList<CalendarDisplay> = mutableListOf()
 
@@ -100,7 +100,7 @@ fun getMonthDaysForCalendar(month: Int, year: Int): List<CalendarDisplay>{
          * Checks if the it is the next month and if it is a new Week (If the day is a Monday)
          */
         if(nextDate.minusMonths(1).monthValue == month  && nextDate.dayOfWeek == DayOfWeek.MONDAY){
-            break;
+            break
         }
         monthsDaysForCalendar.add(
             CalendarDisplay(

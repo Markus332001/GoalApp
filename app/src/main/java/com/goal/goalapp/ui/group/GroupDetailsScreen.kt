@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.Popup
@@ -158,6 +159,9 @@ fun GroupDetailsBody(
                     Text(
                         text = groupWithDetailsAndRole.group.name,
                         style = MaterialTheme.typography.headlineLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
                     )
                     Icon(
                         imageVector = if (groupWithDetailsAndRole.group.isPrivate) Icons.Default.Lock else Icons.Default.LockOpen,

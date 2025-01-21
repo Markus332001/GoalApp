@@ -45,6 +45,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -192,6 +193,9 @@ fun GoalDetailsScreenBody(
                 Text(
                     text = goalWithDetails.goal.title,
                     style = MaterialTheme.typography.headlineLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
                     )
                 Icon(
                     imageVector = Icons.Default.Share,
@@ -311,7 +315,7 @@ fun ProgressDisplay(
 ){
     when(completionType){
         CompletionType.ReachGoal -> {
-            val goalCompleted = progress >= 1;
+            val goalCompleted = progress >= 1
             SelectButton(
                 title = if(goalCompleted) stringResource(R.string.goal_completed) else stringResource(R.string.click_to_complete_goal),
                 selected = goalCompleted,
@@ -437,11 +441,7 @@ fun CompletionCriteriaReachTargetValueDialog(
                             val input = if(it == "") 0 else it.toIntOrNull()
                             if(input != null){
                                 newCurrentValue = input
-                                if(input in 0..targetValue){
-                                    isValid = true
-                                }else{
-                                    isValid = false
-                                }
+                                isValid = input in 0..targetValue
                             }
                                         },
                         isError = !isValid,

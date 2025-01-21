@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.goal.goalapp.R
@@ -109,7 +110,7 @@ fun GroupScreen(
                     text = { Text(
                         text = title,
                         style = MaterialTheme.typography.headlineSmall,
-                        textAlign = TextAlign.Center,
+                        textAlign = TextAlign.Center
                     ) }
                 )
             }
@@ -233,7 +234,9 @@ fun GroupCard(
         Text(
             text = groupWithCategories.group.name,
             style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(vertical = 10.dp, horizontal = 20.dp)
+            modifier = Modifier.weight(1f).padding(vertical = 10.dp, horizontal = 20.dp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
         if(!isMyGroup){
             if(groupWithCategories.group.isPrivate){

@@ -102,3 +102,4 @@ abstract class GoalDatabase : RoomDatabase(){
         }
     }
 }
+

@@ -153,7 +153,7 @@ class CalendarViewModel(
         return monthDays
     }
 
-    fun getCurrentVisibleDay(date: LocalDate?): CalendarDisplay?{
+    fun getCurrentVisibleDay(date: LocalDate?): CalendarDisplay {
 
         val newDate = date ?: LocalDate.now()
         //checks if the day already exists in the list from the db

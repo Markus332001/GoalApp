@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -125,53 +126,53 @@ fun GroupChatScreen(
          */
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxWidth()
         ){
-            Row(verticalAlignment = Alignment.CenterVertically){
-                /**
-                 * Back Arrow
-                 */
-                BackArrow(navigateBack = navigateBack, modifier = Modifier.padding(start = 16.dp, end = 10.dp))
+            /**
+             * Back Arrow
+             */
+            BackArrow(navigateBack = navigateBack, modifier = Modifier.padding(start = 16.dp, end = 10.dp))
 
-                /**
-                 * Group name
-                 */
-                if(groupWithDetails != null) {
-                    Text(
-                        text = groupWithDetails!!.group.name,
-                        style = MaterialTheme.typography.headlineLarge,
-                    )
-                }
-            }
+            /**
+             * Group name
+             */
             if(groupWithDetails != null) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    /**
-                     * Settings and add
-                     */
-                    Icon(
-                        imageVector = Icons.Outlined.Info,
-                        contentDescription = stringResource(R.string.settings),
-                        modifier = Modifier
-                            .padding(start = 10.dp)
-                            .size(40.dp)
-                            .clickable {
-                                if (groupId != null) {
-                                    toGroupDetailsScreen(groupId)
-                                }
+                Text(
+                    text = groupWithDetails!!.group.name,
+                    style = MaterialTheme.typography.headlineLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            if(groupWithDetails != null) {
+                /**
+                 * Settings and add
+                 */
+                Icon(
+                    imageVector = Icons.Outlined.Info,
+                    contentDescription = stringResource(R.string.settings),
+                    modifier = Modifier
+                        .padding(start = 10.dp)
+                        .size(40.dp)
+                        .clickable {
+                            if (groupId != null) {
+                                toGroupDetailsScreen(groupId)
                             }
-                    )
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.add_post),
-                        modifier = Modifier
-                            .padding(start = 10.dp, end = 16.dp)
-                            .size(40.dp)
-                            .clickable {
-                                openAddPostDialog.value = true
-                            }
-                    )
-                }
+                        }
+                )
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.add_post),
+                    modifier = Modifier
+                        .padding(start = 10.dp, end = 16.dp)
+                        .size(40.dp)
+                        .clickable {
+                            openAddPostDialog.value = true
+                        }
+                )
+
             }
         }
 
